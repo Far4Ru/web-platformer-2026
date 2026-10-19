@@ -1,4 +1,4 @@
-import { drawSkillIcon } from '../mock/skillIcons.js';
+import { drawSkillIcon } from '../render/skillIcons.js';
 
 export class SkillBar {
   constructor(ui, canvasWidth) {
@@ -16,7 +16,7 @@ export class SkillBar {
     const startX = (this.canvasWidth - skills.length * size - (skills.length - 1) * gap) / 2;
     skills.forEach(({ kind, skill }, index) => {
       const rect = { x: startX + index * (size + gap), y, width: size, height: size };
-      drawSkillIcon(ctx, kind, rect, colors, skill.cooldown === 0);
+      drawSkillIcon(ctx, kind, rect, colors, skill.cooldown === 0, game.engine.images);
       ctx.save();
       ctx.fillStyle = colors.text;
       ctx.font = `14px ${this.ui.font}`;

@@ -16,6 +16,8 @@ export class Chests {
     this.timer = 0;
     this.holdSource = null;
     this.holdProgress = 0;
+    this.rerollHeld = false;
+    this.rerollProgress = 0;
   }
 
   get active() { return this.phase !== null; }
@@ -66,6 +68,10 @@ export class Chests {
   }
 
   cancelHold(source) {
+    if (!source || source === 'key:ArrowDown') {
+      this.rerollHeld = false;
+      this.rerollProgress = 0;
+    }
     if (source && this.holdSource !== source) return;
     this.holdSource = null;
     this.holdProgress = 0;
@@ -87,6 +93,10 @@ export class Chests {
       return;
     }
     if (this.active) {
+      if (this.rerollHeld && this.phase === 'choice') {
+        this.rerollProgress += dt;
+        if (this.rerollProgress >= this.settings.confirmHoldSeconds) this.reroll(game);
+      }
       if (this.holdSource) {
         this.holdProgress += dt;
         if (this.holdProgress >= this.settings.confirmHoldSeconds)
@@ -96,6 +106,8 @@ export class Chests {
     }
     const chest = this.items.find((item) => item.tryCollect(player));
     if (!chest) return;
+    game.sounds?.play('chest');
+    game.effects?.emit(chest.x + chest.width / 2, chest.y + chest.height / 2, 'coin');
     if (!this.hellUsed && !this.blessed && this.random() < this.settings.hellChance) {
       this.hellUsed = true;
       this.hellCard = this.settings.hellEntries[
@@ -118,10 +130,16 @@ export class Chests {
     return true;
   }
 
+  startRerollHold() {
+    if (this.phase !== 'choice' || this.rerolls < 1) return;
+    this.rerollHeld = true;
+  }
+
   choose(index, game) {
     if (this.phase === 'hellCard') {
       this.rewardCard = { ...this.hellCard, rarity: 'hell' };
       game.hell.activate(this.hellCard.id, game);
+      game.sounds?.play('card');
       this.phase = 'reward';
       this.timer = this.settings.rewardBannerDuration;
       this.hellCard = null;
@@ -133,6 +151,7 @@ export class Chests {
     if (this.phase !== 'choice' || !this.offers[index]) return false;
     const card = this.offers[index];
     this.apply(card, game);
+    game.sounds?.play('card');
     this.rewardCard = card;
     this.offers = [];
     this.phase = 'reward';
@@ -162,6 +181,7 @@ export class Chests {
       if (index >= 0) {
         game.enemies.items[index].health = 0;
         game.enemies.items[index].dropped = true;
+        game.defeatedEnemies?.add(index);
         game.collectCoins.discardDrops(index);
       }
       game.collectCoins.grant(15);

@@ -6,7 +6,7 @@ import { HellMode } from '../js/game/features/HellMode.js';
 import { PlayerHealth } from '../js/game/features/PlayerHealth.js';
 import { PlayerMovement } from '../js/game/features/PlayerMovement.js';
 import { Platforms } from '../js/game/features/Platforms.js';
-import { drawCard, drawHellWall, drawRarityBanner } from '../js/mock/cards.js';
+import { drawCard, drawHellWall, drawRarityBanner } from '../js/render/cards.js';
 
 const settings = JSON.parse(readFileSync(new URL('../assets/json/game.json', import.meta.url), 'utf8'));
 const chestBounds = [
@@ -89,44 +89,61 @@ test('only one chest can turn infernal; blessing prevents a future transformatio
   assert.equal(blessed.phase, 'choice');
 });
 
-test('card confirmation requires 2.5 uninterrupted seconds of holding', () => {
+test('card confirmation requires 0.5 uninterrupted seconds of holding', () => {
   const run = game();
   const chests = new Chests(chestBounds, { ...settings.cards, hellChance: 0 }, () => 0);
   chests.update(0, { x: 0, y: 0, width: 34, height: 34 }, run);
   chests.update(settings.cards.openingDuration, null, run);
   assert(chests.startHold('key:Space'));
-  chests.update(2.4, null, run);
+  chests.update(0.4, null, run);
   assert.equal(chests.phase, 'choice');
-  assert.equal(chests.holdProgress, 2.4);
+  assert.equal(chests.holdProgress, 0.4);
   chests.cancelHold('key:Space');
   assert.equal(chests.holdProgress, 0);
   chests.startHold('key:KeyW');
-  chests.update(1, null, run);
+  chests.update(0.2, null, run);
   chests.moveSelection(1);
   assert.equal(chests.holdProgress, 0);
   chests.startHold('key:ArrowUp');
-  chests.update(2.5, null, run);
+  chests.update(0.5, null, run);
   assert.equal(chests.phase, 'reward');
   assert(settings.cards.rarityColors[chests.rewardCard.rarity]);
   chests.update(settings.cards.rewardBannerDuration, null, run);
   assert.equal(chests.phase, null);
 });
 
+test('down-arrow reroll requires 0.5 seconds and cancels on release', () => {
+  const run = game();
+  const chests = new Chests(chestBounds, { ...settings.cards, hellChance: 0 }, () => 0);
+  chests.update(0, { x: 0, y: 0, width: 34, height: 34 }, run);
+  chests.update(settings.cards.openingDuration, null, run);
+  chests.rerolls = 1;
+  chests.startRerollHold();
+  chests.update(0.4, null, run);
+  assert.equal(chests.rerolls, 1);
+  chests.cancelHold('key:ArrowDown');
+  chests.startRerollHold();
+  chests.update(0.5, null, run);
+  assert.equal(chests.rerolls, 0);
+  assert.equal(chests.rerollProgress, 0);
+});
+
 test('reward banner uses the color and label of each rarity', () => {
-  const strokes = [];
+  const labels = [];
   const ctx = {
     save() {}, restore() {}, translate() {}, scale() {}, beginPath() {},
-    roundRect() {}, fill() {}, stroke() { strokes.push(this.strokeStyle); },
-    fillRect() {}, fillText() {},
+    roundRect() {}, fill() {}, stroke() {}, drawImage() {},
+    fillRect() {}, fillText(text) { labels.push([text, this.fillStyle]); },
   };
   for (const rarity of ['common', 'rare', 'epic', 'legendary', 'hell']) {
     drawRarityBanner(ctx, { title: 'Карта', description: 'Награда' },
       settings.cards.rarityColors[rarity], settings.cards.rarityLabels[rarity],
       settings.cards.uiText.reward, settings.ui.cards.colors, settings.ui.font,
-      settings.world, 0);
+      settings.world, 0, { panel: { width: 64, height: 64 } });
   }
-  assert.deepEqual(strokes, ['common', 'rare', 'epic', 'legendary', 'hell']
-    .map((rarity) => settings.cards.rarityColors[rarity]));
+  assert.deepEqual(labels.filter(([text]) => text.includes('·')).map(([, color]) => color),
+    ['common', 'rare', 'epic', 'legendary', 'hell']
+      .map((rarity) => settings.cards.rarityColors[rarity]));
 });
 
 test('held card grows while its confirmation progress is shown', () => {
@@ -134,13 +151,16 @@ test('held card grows while its confirmation progress is shown', () => {
   const fills = [];
   const ctx = {
     save() {}, restore() {}, translate() {}, beginPath() {}, roundRect() {},
-    fill() {}, stroke() {}, fillText() {}, measureText(text) { return { width: text.length * 8 }; },
+    fill() {}, stroke() {}, fillText() {}, drawImage() {},
+    measureText(text) { return { width: text.length * 8 }; },
     scale(x, y) { scales.push([x, y]); },
     fillRect(...args) { fills.push(args); },
   };
   drawCard(ctx, settings.cards.entries[0],
     { x: 100, y: 100, width: 232, height: 252 }, '#fff', 'Alice, serif',
-    settings.ui.cards.colors, 'ОБЫЧНАЯ', '', true, 0.5, 1);
+    settings.ui.cards.colors, 'ОБЫЧНАЯ', '', true, 0.5, 1,
+    { panel: { width: 64, height: 64 }, panelBorder: { width: 64, height: 64 },
+      pickups: { width: 1536, height: 1024 }, effects: { width: 1536, height: 1024 } });
   assert(scales[0][0] > 1);
   assert(fills.some((rect) => rect[2] === 100));
 });

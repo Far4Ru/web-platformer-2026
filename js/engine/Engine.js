@@ -2,6 +2,7 @@ import { getCanvas, configureCanvas } from './canvas.js';
 import { showLoadError } from './error.js';
 import { GameLoop } from './GameLoop.js';
 import { loadGameData } from './loadGameData.js';
+import { loadImages } from './images.js';
 import { Renderer } from './Renderer.js';
 import { applyTexts } from './texts.js';
 
@@ -17,6 +18,7 @@ export class Engine {
     applyTexts(texts, this.canvas);
     this.settings = settings;
     this.texts = texts;
+    this.images = await loadImages(settings.images);
     this.renderer = new Renderer(this.ctx, this.canvas);
   }
 

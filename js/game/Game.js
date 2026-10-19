@@ -14,6 +14,8 @@ import { BestScore } from './features/BestScore.js';
 import { Platforms } from './features/Platforms.js';
 import { CollectCoins } from './features/CollectCoins.js';
 import { Music } from './features/Music.js';
+import { SoundEffects } from './features/SoundEffects.js';
+import { BurstParticles } from './components/BurstParticles.js';
 import { Hazards } from './features/Hazards.js';
 import { Enemies } from './features/Enemies.js';
 import { ReachGoal } from './features/ReachGoal.js';
@@ -40,17 +42,20 @@ export class Game {
     const { canvas, settings, texts } = engine;
     this.input = new Input(settings.controls.keys);
     this.music = new Music(settings.music);
+    this.sounds = new SoundEffects(settings.sounds);
     this.player = new Player(settings.player);
     this.playerHealth = new PlayerHealth(settings.health);
     this.buildLevel();
-    this.background = new Background(settings.scene);
-    this.hud = new HUD(settings.ui, texts, canvas.width);
-    this.overlay = new Overlay(settings.ui, texts, settings.world);
-    this.controls = new Controls(settings.ui, texts);
+    this.background = new Background(engine.images, settings.scene.background);
+    this.hud = new HUD(settings.ui, texts, canvas.width, engine.images);
+    this.overlay = new Overlay(settings.ui, texts, settings.world, engine.images);
+    this.controls = new Controls(settings.ui, texts, engine.images);
     this.skillBar = new SkillBar(settings.ui, canvas.width);
     this.boostBar = new BoostBar(settings.ui, canvas.width);
-    this.cardOverlay = new CardOverlay(settings.ui, settings.cards, settings.world);
+    this.cardOverlay = new CardOverlay(settings.ui, settings.cards, settings.world, engine.images);
     this.phase = 'ready';
+    this.idleTime = 0;
+    this.landingTime = 0;
     this.hasStarted = false;
     this.bestScore = new BestScore(settings.storageKey);
     this.winLose = new WinLose();
@@ -79,6 +84,8 @@ export class Game {
     this.chests = new Chests(this.level.chestPickups ?? [], settings.cards);
     this.hell = new HellMode(settings.cards.hell);
     this.cardBonuses = { damage: 0, speed: 1 };
+    this.effects = new BurstParticles(settings.particles);
+    this.defeatedEnemies = new Set();
     this.playerShots = new PlayerShots();
     this.playerMovement = new PlayerMovement(this.player, this.input, this.platforms, this.level.width);
     this.dust = new DustParticles(settings.player.dust);
@@ -111,7 +118,7 @@ export class Game {
       }
       const action = this.controls.hit(point, this.state);
       if (action === 'restart') this.restart();
-      else if (action === 'sound') this.music.toggle();
+      else if (action === 'sound') this.toggleSound();
       else if (action === 'pause') {
         if (this.state === 'playing') this.pause();
         else this.resume();
@@ -131,7 +138,7 @@ export class Game {
     this.canvas.addEventListener('pointercancel', release);
     this.canvas.addEventListener('lostpointercapture', release);
     window.addEventListener('keydown', (event) => {
-      if (event.code === 'KeyM' && !event.repeat) this.music.toggle();
+      if (event.code === 'KeyM' && !event.repeat) this.toggleSound();
       if (this.chests.active) {
         if (this.chests.phase === 'choice' && event.code === 'ArrowLeft')
           this.chests.moveSelection(-1);
@@ -141,9 +148,9 @@ export class Game {
           this.chests.startHold(`key:${event.code}`);
         else if (this.chests.phase === 'choice' && /^Digit[1-3]$/.test(event.code))
           this.chests.select(Number(event.code.at(-1)) - 1);
-        else if (this.chests.phase === 'choice' && event.code === 'KeyR') this.chests.reroll(this);
+        else if (this.chests.phase === 'choice' && event.code === 'ArrowDown') this.chests.startRerollHold();
         if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyW', 'Space',
-          'KeyR', 'Digit1', 'Digit2', 'Digit3'].includes(event.code)) event.preventDefault();
+          'ArrowDown', 'Digit1', 'Digit2', 'Digit3'].includes(event.code)) event.preventDefault();
         return;
       }
       if (event.code === this.settings.controls.pauseKey && !event.repeat) {
@@ -173,8 +180,16 @@ export class Game {
     });
   }
 
+  toggleSound() {
+    this.music.toggle();
+    this.sounds.muted = this.music.muted;
+    if (!this.music.muted) this.sounds.unlock();
+  }
+
   restart() {
     this.player.reset();
+    this.idleTime = 0;
+    this.landingTime = 0;
     this.playerHealth.reset();
     if (this.hasStarted) this.buildLevel();
     this.hasStarted = true;
@@ -182,6 +197,7 @@ export class Game {
     this.input.clear();
     this.phase = 'playing';
     this.music.play();
+    this.sounds.unlock();
     this.engine.resetTime();
   }
 
@@ -209,17 +225,30 @@ export class Game {
   update(dt) {
     this.hell.update(dt, this);
     this.dust.update(dt);
+    this.effects.update(dt);
     this.hazards.update(dt);
     this.enemies.update(dt, this.player);
     this.playerHealth.update(dt);
     if (this.playerHealth.value > 0) {
       this.boosts.update(dt, this.player, this.playerHealth);
+      const wasGrounded = this.player.grounded;
       if (this.playerMovement.update(dt, this.boosts.speedMultiplier * this.cardBonuses.speed))
         this.dust.emit(this.player, this.player.facing);
+      this.landingTime = !wasGrounded && this.player.grounded
+        ? 0.16 : Math.max(0, this.landingTime - dt);
+      this.idleTime = this.player.grounded && Math.abs(this.player.vx) < 6
+        ? this.idleTime + dt : 0;
+      if (this.playerMovement.jumped) {
+        this.sounds.play('jump');
+        this.effects.emit(this.player.x + this.player.width / 2,
+          this.player.y + this.player.height, 'dust', 5);
+      }
       this.camera.follow(this.player);
       this.companionSkill.update(dt, this.player, this.enemies, this.playerShots, this);
+      const previousSwordTime = this.swordSkill.attackTime;
       this.swordSkill.update(dt, this.player, this.enemies,
         this.boosts.damageMultiplier * (1 + this.cardBonuses.damage));
+      if (this.swordSkill.attackTime > previousSwordTime) this.sounds.play('sword');
       this.fireballSkill.update(dt, this.player, this.enemies, this.playerShots);
       this.iceSkill.update(dt, this.player, this.enemies, this.playerShots);
       this.bowSkill.update(dt, this.player, this.enemies, this.playerShots);
@@ -227,16 +256,36 @@ export class Game {
         this.boosts.damageMultiplier * (1 + this.cardBonuses.damage), this.platforms.items);
       const hazardHit = this.hazards.hits(this.player);
       const enemyHit = this.enemies.hits(this.player);
-      if (hazardHit || enemyHit || this.hell.hits(this.player)) this.playerHealth.takeDamage();
+      if ((hazardHit || enemyHit || this.hell.hits(this.player))
+        && this.playerHealth.takeDamage()) {
+        this.sounds.play('hurt');
+        this.effects.emit(this.player.x + this.player.width / 2,
+          this.player.y + this.player.height / 2, 'hit');
+      }
     }
     this.healingSkill.update(dt, this.player, this.playerHealth);
     this.collectCoins.releaseDrops(this.enemies.items, this.enemies.coinBonus ?? 0);
+    this.enemies.items.forEach((enemy, index) => {
+      if (enemy.alive || this.defeatedEnemies.has(index)) return;
+      this.defeatedEnemies.add(index);
+      this.sounds.play('enemy');
+      this.effects.emit(enemy.x + enemy.width / 2,
+        enemy.y + enemy.height / 2, 'hit', enemy.boss ? 16 : 8);
+    });
     if (this.winLose.checkLoss(this.player, this.playerHealth, this.level.bottom)) return this.endAttempt();
     if (this.playerHealth.value === 0) return;
-    if (this.collectCoins.update(dt, this.player)) this.bestScore.save(this.collectCoins.count);
+    if (this.collectCoins.update(dt, this.player)) {
+      this.bestScore.save(this.collectCoins.count);
+      this.sounds.play('coin');
+      for (const coin of this.collectCoins.lastCollected) this.effects.emit(
+        coin.x + coin.width / 2, coin.y + coin.height / 2, 'coin', 4);
+    }
     this.chests.update(dt, this.player, this);
     if (this.chests.active) return;
     if (this.winLose.checkWin(this.player, this.reachGoal, this.collectCoins,
-      this.enemies.bossDefeated)) this.endAttempt();
+      this.enemies.bossDefeated)) {
+      this.sounds.play('win');
+      this.endAttempt();
+    }
   }
 }

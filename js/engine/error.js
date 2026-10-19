@@ -1,4 +1,4 @@
-import { drawErrorBackground } from '../mock/loadError.js';
+import { drawErrorBackground } from '../render/loadError.js';
 
 export function showLoadError(canvas, error) {
   console.error(error);

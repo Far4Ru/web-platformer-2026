@@ -13,6 +13,7 @@ export class PlayerMovement {
 
   update(dt, speedMultiplier = 1) {
     const { player, input } = this;
+    this.jumped = false;
     const { settings } = player;
     const horizontal = input.horizontal;
     const surface = player.grounded ? player.groundPlatform?.surface : 'normal';
@@ -29,6 +30,7 @@ export class PlayerMovement {
     if (input.consumeJump() && player.grounded && !frozen) {
       player.vy = -settings.jumpSpeed;
       player.grounded = false;
+      this.jumped = true;
     }
     const startedOnGround = horizontal !== 0 && !frozen && horizontal !== this.lastInput && player.grounded;
     this.lastInput = horizontal;

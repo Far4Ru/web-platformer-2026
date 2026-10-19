@@ -1,4 +1,4 @@
-import { drawBoostSymbol } from '../mock/boosts.js';
+import { drawBoostSymbol } from '../render/boosts.js';
 
 export class BoostBar {
   constructor(ui, canvasWidth) {
@@ -6,7 +6,7 @@ export class BoostBar {
     this.canvasWidth = canvasWidth;
   }
 
-  render(ctx, boosts) {
+  render(ctx, boosts, image) {
     const active = Object.entries(boosts.remaining).filter(([, time]) => time > 0);
     if (!active.length) return;
     const { size, gap, y, colors } = this.ui.boosts;
@@ -18,7 +18,8 @@ export class BoostBar {
       ctx.fillRect(x, y, size, size);
       ctx.fillStyle = colors.panel;
       ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
-      drawBoostSymbol(ctx, kind, x + size / 2, y + size / 2 - 3, colors[kind], size * 0.65);
+      drawBoostSymbol(ctx, kind, x + size / 2, y + size / 2 - 3,
+        colors[kind], size * 0.65, image);
       ctx.fillStyle = colors.text;
       ctx.font = `12px ${this.ui.font}`;
       ctx.textAlign = 'right';

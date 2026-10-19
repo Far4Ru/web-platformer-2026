@@ -1,11 +1,12 @@
-import { drawBackground } from '../../mock/background.js';
+import { drawBackground } from '../../render/background.js';
 
 export class Background {
-  constructor(scene) {
-    this.scene = scene;
+  constructor(images, settings) {
+    this.images = images;
+    this.settings = settings;
   }
 
-  render(ctx, canvas, time) {
-    drawBackground(ctx, canvas, this.scene, time);
+  render(ctx, canvas, time, camera, levelWidth) {
+    drawBackground(ctx, canvas, this.images, this.settings, camera.x, levelWidth);
   }
 }

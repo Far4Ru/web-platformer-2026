@@ -55,8 +55,12 @@ export class CollectCoins {
 
   update(dt, player) {
     let changed = false;
+    this.lastCollected = [];
     for (const coin of this.items) {
-      if (coin.update(dt, player, this.magnet)) changed = true;
+      if (coin.update(dt, player, this.magnet)) {
+        changed = true;
+        this.lastCollected.push(coin);
+      }
     }
     return changed;
   }

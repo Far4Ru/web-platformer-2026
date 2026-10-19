@@ -1,17 +1,19 @@
-import { drawPlatform } from '../../mock/platform.js';
-import { drawHazard } from '../../mock/hazard.js';
-import { drawEnemy, drawEnemyHealthBar } from '../../mock/enemy.js';
-import { drawCoin } from '../../mock/coin.js';
-import { drawGoal } from '../../mock/goal.js';
-import { drawPlayer } from '../../mock/player.js';
-import { drawHealthBar } from '../../mock/health.js';
-import { drawHealingBeam } from '../../mock/healingSkill.js';
-import { drawSwordAttack } from '../../mock/swordSkill.js';
-import { drawDust } from '../../mock/dust.js';
-import { drawBoostPickup } from '../../mock/boosts.js';
-import { drawChest, drawHellEffects, drawHellWall } from '../../mock/cards.js';
+import { drawEarth, drawPlatform } from '../../render/platform.js';
+import { drawHazard } from '../../render/hazard.js';
+import { drawEnemy, drawEnemyHealthBar } from '../../render/enemy.js';
+import { drawCoin } from '../../render/coin.js';
+import { drawGoal } from '../../render/goal.js';
+import { drawPlayer } from '../../render/player.js';
+import { drawHealthBar } from '../../render/health.js';
+import { drawHealingBeam } from '../../render/healingSkill.js';
+import { drawSwordAttack } from '../../render/swordSkill.js';
+import { drawDust } from '../../render/dust.js';
+import { drawParticles } from '../../render/particles.js';
+import { drawBoostPickup } from '../../render/boosts.js';
+import { drawChest, drawHellEffects, drawHellWall } from '../../render/cards.js';
 import { drawCompanion, drawAbilityShot,
-  drawEnemyAbility, drawEnemyShot, drawEnemySpikes } from '../../mock/abilities.js';
+  drawEnemyAbility, drawEnemyShot, drawEnemySpikes } from '../../render/abilities.js';
+import { drawMovementHint } from '../../render/movementHint.js';
 
 export class GameScene {
   constructor(game, art) {
@@ -27,45 +29,63 @@ export class GameScene {
     const goal = game.reachGoal.goal;
     const { player, state, overlay, hud, controls } = game;
 
-    game.background.render(ctx, canvas, time);
+    game.background.render(ctx, canvas, time, game.camera, game.level.width);
     ctx.save();
     const shake = game.hell.kind ? game.settings.cards.hell.shake : 0;
     const shakeX = Math.sin(time * 37) * shake;
     ctx.translate(-game.camera.x + shakeX,
       -game.camera.y + Math.cos(time * 43) * shake);
-    for (const platform of platforms) drawPlatform(ctx, platform, art);
-    drawHellEffects(ctx, game.hell, platforms, art.hell);
-    for (const hazard of hazards) drawHazard(ctx, hazard, art);
-    for (const spikes of game.enemies.spikes) drawEnemySpikes(ctx, spikes, art.abilities);
-    for (const shot of game.enemies.projectiles) drawEnemyShot(ctx, shot, art.abilities);
+    const visiblePlatforms = platforms.filter((platform) =>
+      platform.x + platform.width >= game.camera.x - 90
+      && platform.x <= game.camera.x + canvas.width + 90);
+    drawEarth(ctx, visiblePlatforms, game.engine.images, art, game.camera, canvas);
+    for (const platform of visiblePlatforms) drawPlatform(ctx, platform, art, game.engine.images);
+    drawHellEffects(ctx, game.hell, platforms, art.hell, game.engine.images.effects);
+    for (const hazard of hazards) drawHazard(ctx, hazard, art, game.engine.images.objects);
+    for (const spikes of game.enemies.spikes) drawEnemySpikes(ctx, spikes,
+      art.abilities, game.engine.images.effects);
+    for (const shot of game.enemies.projectiles) drawEnemyShot(ctx, shot,
+      art.abilities, game.engine.images.effects);
     for (const enemy of game.enemies.items) {
       if (enemy.alive) {
-        drawEnemy(ctx, enemy, art.enemyColors);
+        drawEnemy(ctx, enemy, art.enemyColors, time, game.engine.images);
         drawEnemyHealthBar(ctx, enemy, art.enemyHealth);
         drawEnemyAbility(ctx, enemy, art.abilities);
       }
     }
-    coins.forEach((coin, index) => drawCoin(ctx, coin, index, art, time));
-    for (const chest of game.chests.items) drawChest(ctx, chest, time, game.settings.cards.chestArt);
+    coins.forEach((coin, index) => drawCoin(ctx, coin, index, art, time,
+      game.engine.images.pickups));
+    for (const chest of game.chests.items) drawChest(ctx, chest, time,
+      game.settings.cards.chestArt, false, game.engine.images.pickups);
     for (const [kind, pickup] of Object.entries(game.boosts.pickups)) {
-      drawBoostPickup(ctx, pickup, kind, art.boosts, time);
+      drawBoostPickup(ctx, pickup, kind, art.boosts, time, game.engine.images.pickups);
     }
     drawGoal(ctx, goal, game.reachGoal.progress(game.collectCoins),
-      game.reachGoal.isReady(game.collectCoins, game.enemies.bossDefeated), art);
-    drawDust(ctx, game.dust.particles, game.dust.settings.life);
-    drawHealingBeam(ctx, player, game.camera, game.healingSkill);
-    drawCompanion(ctx, game.companionSkill, player, art.abilities);
-    drawPlayer(ctx, player);
-    drawSwordAttack(ctx, player, game.swordSkill);
-    for (const shot of game.playerShots.items) drawAbilityShot(ctx, shot, art.abilities);
+      game.reachGoal.isReady(game.collectCoins, game.enemies.bossDefeated), art,
+      game.engine.images.objects, time);
+    drawDust(ctx, game.dust.particles, game.dust.settings.life, game.engine.images.effects);
+    drawHealingBeam(ctx, player, game.camera, game.healingSkill, game.engine.images.effects);
+    drawCompanion(ctx, game.companionSkill, player, art.abilities, time, game.engine.images.golem);
+    drawPlayer(ctx, player, time, game.engine.images.explorer,
+      game.engine.images.explorerActions, {
+        attacking: game.swordSkill.attackTime > 0,
+        landing: game.landingTime > 0,
+        won: state === 'won',
+      });
+    drawMovementHint(ctx, player, game.idleTime, game.engine.images, time);
+    drawSwordAttack(ctx, player, game.swordSkill, game.engine.images.effects);
+    for (const shot of game.playerShots.items) drawAbilityShot(ctx, shot,
+      art.abilities, game.engine.images.effects);
     drawHealthBar(ctx, player, game.playerHealth);
+    drawParticles(ctx, game.effects.items, game.effects.settings, game.engine.images.effects);
     ctx.restore();
-    drawHellWall(ctx, game.hell, game.camera, canvas, art.hell, shakeX);
+    drawHellWall(ctx, game.hell, game.camera, canvas, art.hell,
+      shakeX, game.engine.images.effects);
 
     if (state !== 'playing') overlay.render(ctx, state);
     hud.render(ctx, game.collectCoins.count, game.bestScore.value);
     game.skillBar.render(ctx, game);
-    game.boostBar.render(ctx, game.boosts);
+    game.boostBar.render(ctx, game.boosts, game.engine.images.effects);
     controls.render(ctx, state, game.music.muted);
     game.cardOverlay.render(ctx, game.chests, game, time);
   }

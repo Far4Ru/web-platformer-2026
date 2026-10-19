@@ -1,10 +1,11 @@
-import { drawOverlayButton, drawOverlayFrame } from '../mock/overlay.js';
+import { drawOverlayButton, drawOverlayFrame } from '../render/overlay.js';
 
 export class Overlay {
-  constructor(ui, texts, world) {
+  constructor(ui, texts, world, images) {
     this.ui = ui;
     this.texts = texts;
     this.world = world;
+    this.images = images;
   }
 
   hitPrimary(point) {
@@ -19,19 +20,19 @@ export class Overlay {
     const { panel, button } = this.ui.overlay;
     const { colors, font } = this.ui;
     ctx.save();
-    drawOverlayFrame(ctx, this.world, panel, colors);
+    drawOverlayFrame(ctx, this.world, panel, colors, this.images);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = colors.accent;
     ctx.font = `17px ${font}`;
     ctx.fillText(copy.kicker, this.world.width / 2, panel.y + 48);
-    ctx.fillStyle = colors.text;
+    ctx.fillStyle = '#342619';
     ctx.font = `36px ${font}`;
     ctx.fillText(copy.title, this.world.width / 2, panel.y + 95);
-    ctx.fillStyle = colors.muted;
+    ctx.fillStyle = '#4d3c2e';
     ctx.font = `20px ${font}`;
     this.drawWrapped(ctx, copy.description, this.world.width / 2, panel.y + 142, panel.width - 72);
-    drawOverlayButton(ctx, button, colors.button);
+    drawOverlayButton(ctx, button, colors.button, this.images);
     ctx.fillStyle = colors.buttonText;
     ctx.font = `23px ${font}`;
     ctx.fillText(copy.button, button.x + button.width / 2, button.y + button.height / 2 + 1);
