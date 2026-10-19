@@ -1,3 +1,5 @@
+import { drawCounterPanel } from '../mock/counter.js';
+
 export class Counter {
   constructor(rect, label, ui) {
     this.rect = rect;
@@ -6,16 +8,10 @@ export class Counter {
   }
 
   render(ctx, value) {
-    const { x, y, width, height } = this.rect;
+    const { x, y } = this.rect;
     const { colors, font } = this.ui;
     ctx.save();
-    ctx.fillStyle = colors.panel;
-    ctx.strokeStyle = colors.panelBorder;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(x, y, width, height, 10);
-    ctx.fill();
-    ctx.stroke();
+    drawCounterPanel(ctx, this.rect, colors);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = colors.muted;

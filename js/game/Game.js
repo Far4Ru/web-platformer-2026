@@ -1,39 +1,49 @@
-import { Player } from './Player.js';
+import { Player } from '../entities/Player.js';
 import { Input } from '../engine/input.js';
-import { overlaps } from '../engine/collision.js';
 import { HUD } from '../ui/HUD.js';
 import { Overlay } from '../ui/Overlay.js';
 import { Controls } from '../ui/Controls.js';
+import { Background } from './components/Background.js';
+import { GameScene } from './components/GameScene.js';
+import { Camera } from './components/Camera.js';
+import { BestScore } from './features/BestScore.js';
+import { Platforms } from './features/Platforms.js';
+import { CollectLetters } from './features/CollectLetters.js';
+import { Hazards } from './features/Hazards.js';
+import { ReachGoal } from './features/ReachGoal.js';
+import { PlayerMovement } from './features/PlayerMovement.js';
+import { PlayerHealth } from './features/PlayerHealth.js';
+import { WinLose } from './features/WinLose.js';
 
 export class Game {
-  constructor(canvas, settings, texts) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.settings = settings;
-    this.texts = texts;
-    this.level = settings.level;
+  constructor(engine) {
+    this.engine = engine;
+    this.canvas = engine.canvas;
+    this.settings = engine.settings;
+    const { canvas, settings, texts } = engine;
+    this.platforms = new Platforms(settings.level.platforms);
+    this.collectLetters = new CollectLetters(settings.level.letters);
+    this.hazards = new Hazards(settings.level.hazard);
+    this.reachGoal = new ReachGoal(settings.level.goal);
     this.input = new Input(settings.controls.keys);
     this.player = new Player(settings.player);
+    this.playerHealth = new PlayerHealth(settings.health);
+    this.playerMovement = new PlayerMovement(this.player, this.input, this.platforms, settings.level.width);
+    this.camera = new Camera(canvas.width, canvas.height, settings.level);
+    this.camera.follow(this.player);
+    this.background = new Background(settings.scene);
     this.hud = new HUD(settings.ui, texts, canvas.width);
     this.overlay = new Overlay(settings.ui, texts, settings.world);
     this.controls = new Controls(settings.ui, texts);
-    this.state = 'ready';
-    this.collected = new Set();
-    this.best = this.readBest();
-    this.lastTime = null;
+    this.phase = 'ready';
+    this.bestScore = new BestScore(settings.storageKey, this.collectLetters.items.length);
+    this.winLose = new WinLose();
+    this.scene = new GameScene(this, settings.scene);
     this.bindControls();
-    requestAnimationFrame((time) => this.frame(time));
   }
 
-  readBest() {
-    try { return Math.min(this.level.letters.length, Math.max(0, Number(localStorage.getItem(this.settings.storageKey)) || 0)); }
-    catch { return 0; }
-  }
-
-  saveBest() {
-    if (this.collected.size <= this.best) return;
-    this.best = this.collected.size;
-    try { localStorage.setItem(this.settings.storageKey, String(this.best)); } catch { /* Storage may be disabled. */ }
+  get state() {
+    return this.winLose.state ?? this.phase;
   }
 
   bindControls() {
@@ -46,13 +56,13 @@ export class Game {
         y: (event.clientY - rect.top) * this.canvas.height / rect.height,
       };
       const action = this.controls.hit(point, this.state);
-      if (action === 'restart') this.start();
+      if (action === 'restart') this.restart();
       else if (action === 'pause') {
         if (this.state === 'playing') this.pause();
         else this.resume();
       } else if (this.state !== 'playing' && this.overlay.hitPrimary(point)) {
         if (this.state === 'paused') this.resume();
-        else this.start();
+        else this.restart();
       } else if (['left', 'right', 'jump'].includes(action)) {
         this.canvas.setPointerCapture(event.pointerId);
         this.input.pressPointer(event.pointerId, action);
@@ -69,7 +79,7 @@ export class Game {
       } else if (event.code === 'Enter' && !event.repeat && this.state !== 'playing') {
         event.preventDefault();
         if (this.state === 'paused') this.resume();
-        else this.start();
+        else this.restart();
       }
     });
     document.addEventListener('visibilitychange', () => {
@@ -78,117 +88,51 @@ export class Game {
   }
 
   start() {
+    this.engine.start({
+      update: (dt) => {
+        if (this.state === 'playing') this.update(dt);
+      },
+      scene: this.scene,
+    });
+  }
+
+  restart() {
     this.player.reset();
-    this.collected.clear();
+    this.playerHealth.reset();
+    this.camera.follow(this.player);
+    this.collectLetters.reset();
+    this.winLose.reset();
     this.input.clear();
-    this.state = 'playing';
-    this.lastTime = null;
+    this.phase = 'playing';
+    this.engine.resetTime();
   }
 
   pause() {
-    this.state = 'paused';
+    this.phase = 'paused';
     this.input.clear();
   }
 
   resume() {
-    this.state = 'playing';
+    this.phase = 'playing';
     this.input.clear();
-    this.lastTime = null;
+    this.engine.resetTime();
   }
 
-  finish(won) {
-    this.state = won ? 'won' : 'lost';
+  endAttempt() {
     this.input.clear();
-    this.saveBest();
+    this.bestScore.save(this.collectLetters.count);
   }
 
   update(dt) {
-    this.player.update(dt, this.input, this.level.platforms, this.canvas.width);
-    if (this.player.y > this.canvas.height || overlaps(this.player, this.level.hazard)) return this.finish(false);
-    this.level.letters.forEach((letter, index) => {
-      if (!this.collected.has(index) && overlaps(this.player, letter)) {
-        this.collected.add(index);
-        this.saveBest();
-      }
-    });
-    if (this.collected.size === this.level.letters.length && overlaps(this.player, this.level.goal)) this.finish(true);
-  }
-
-  frame(time) {
-    const dt = this.lastTime === null ? 0 : Math.min((time - this.lastTime) / 1000, this.settings.maxFrameStep);
-    this.lastTime = time;
-    if (this.state === 'playing') this.update(dt);
-    this.render(time / 1000);
-    requestAnimationFrame((nextTime) => this.frame(nextTime));
-  }
-
-  render(time) {
-    const ctx = this.ctx;
-    const scene = this.settings.scene;
-    const { hazard, goal, platforms, letters } = this.level;
-    const sky = ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-    sky.addColorStop(0, scene.skyTop);
-    sky.addColorStop(1, scene.skyBottom);
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Stable star positions avoid random flicker between frames.
-    for (let i = 0; i < scene.starCount; i++) {
-      const x = (i * scene.starXMultiplier + scene.starXOffset) % this.canvas.width;
-      const y = (i * scene.starYMultiplier + scene.starYOffset) % scene.starHeight;
-      ctx.globalAlpha = scene.starOpacityBase + scene.starOpacityAmplitude * Math.sin(time * scene.starTwinkleSpeed + i);
-      ctx.fillStyle = scene.starColor;
-      const size = i % scene.largeStarEvery === 0 ? scene.largeStarSize : scene.starSize;
-      ctx.fillRect(x, y, size, size);
+    this.playerHealth.update(dt);
+    if (this.playerHealth.value > 0) {
+      this.playerMovement.update(dt);
+      this.camera.follow(this.player);
+      if (this.hazards.hits(this.player)) this.playerHealth.takeDamage();
     }
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = scene.hillColor;
-    ctx.beginPath();
-    scene.hillPoints.forEach(([x, y], index) => {
-      if (index === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.fill();
-
-    for (const p of platforms) {
-      ctx.fillStyle = scene.platformShadow;
-      ctx.fillRect(p.x + scene.platformShadowOffset.x, p.y + scene.platformShadowOffset.y, p.width, p.height);
-      ctx.fillStyle = scene.platformTop;
-      ctx.fillRect(p.x, p.y, p.width, scene.platformTopHeight);
-      ctx.fillStyle = scene.platformFace;
-      ctx.fillRect(p.x, p.y + scene.platformTopHeight, p.width, p.height - scene.platformTopHeight);
-    }
-    ctx.fillStyle = scene.hazardColor;
-    for (let x = hazard.x; x < hazard.x + hazard.width; x += scene.hazardToothWidth) {
-      ctx.beginPath();
-      ctx.moveTo(x, hazard.y + hazard.height);
-      ctx.lineTo(x + scene.hazardToothWidth / 2, hazard.y);
-      ctx.lineTo(x + scene.hazardToothWidth, hazard.y + hazard.height);
-      ctx.fill();
-    }
-    letters.forEach((letter, index) => {
-      if (this.collected.has(index)) return;
-      const bob = Math.sin(time * scene.letterBobSpeed + index) * scene.letterBobAmount;
-      ctx.fillStyle = scene.letterColor;
-      ctx.fillRect(letter.x, letter.y + bob, letter.width, letter.height - scene.letterBottomInset);
-      ctx.strokeStyle = scene.letterLine;
-      ctx.lineWidth = scene.letterLineWidth;
-      ctx.beginPath();
-      scene.letterFold.forEach(([x, y], point) => {
-        if (point === 0) ctx.moveTo(letter.x + x, letter.y + bob + y);
-        else ctx.lineTo(letter.x + x, letter.y + bob + y);
-      });
-      ctx.stroke();
-    });
-    for (const part of scene.goalParts) {
-      ctx.fillStyle = part.color === 'goalLight'
-        ? (this.collected.size === letters.length ? scene.goalReady : scene.goalLocked)
-        : scene[part.color];
-      ctx.fillRect(goal.x + part.x, goal.y + part.y, part.width, part.height);
-    }
-    this.player.render(ctx);
-    if (this.state !== 'playing') this.overlay.render(ctx, this.state);
-    this.hud.render(ctx, this.collected.size, letters.length, this.best);
-    this.controls.render(ctx, this.state);
+    if (this.winLose.checkLoss(this.player, this.playerHealth, this.settings.level.bottom)) return this.endAttempt();
+    if (this.playerHealth.value === 0) return;
+    if (this.collectLetters.collect(this.player)) this.bestScore.save(this.collectLetters.count);
+    if (this.winLose.checkWin(this.player, this.reachGoal, this.collectLetters)) this.endAttempt();
   }
 }

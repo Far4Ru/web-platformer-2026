@@ -1,4 +1,5 @@
 import { Counter } from './Counter.js';
+import { drawHintPanel } from '../mock/hud.js';
 
 export class HUD {
   constructor(ui, texts, worldWidth) {
@@ -13,10 +14,7 @@ export class HUD {
     this.score.render(ctx, `${collected} / ${total}`);
     this.best.render(ctx, best);
     ctx.save();
-    ctx.fillStyle = this.ui.colors.panel;
-    ctx.globalAlpha = 0.8;
-    ctx.fillRect(0, this.ui.hintY - 22, this.worldWidth, 34);
-    ctx.globalAlpha = 1;
+    drawHintPanel(ctx, this.worldWidth, this.ui.hintY, this.ui.colors.panel);
     ctx.fillStyle = this.ui.colors.text;
     ctx.font = `18px ${this.ui.font}`;
     ctx.textAlign = 'center';
