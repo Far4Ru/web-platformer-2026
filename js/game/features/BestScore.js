@@ -7,7 +7,7 @@ export class BestScore {
 
   read() {
     try {
-      return Math.min(this.maximum, Math.max(0, Number(localStorage.getItem(this.storageKey)) || 0));
+      return Math.max(0, Number(localStorage.getItem(this.storageKey)) || 0);
     } catch {
       return 0;
     }
