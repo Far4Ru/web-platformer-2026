@@ -13,5 +13,6 @@ export class Player extends Entity {
     this.vx = 0;
     this.vy = 0;
     this.grounded = true;
+    this.facing = 1;
   }
 }

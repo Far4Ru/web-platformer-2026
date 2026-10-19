@@ -22,6 +22,13 @@ export class PlayerHealth {
     return true;
   }
 
+  heal(amount) {
+    const previous = this.value;
+    this.value = Math.min(this.settings.max, this.value + amount);
+    this.displayValue = Math.max(this.displayValue, this.value);
+    return this.value > previous;
+  }
+
   get draining() {
     return this.displayValue > this.value;
   }

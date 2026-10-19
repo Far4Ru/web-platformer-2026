@@ -3,16 +3,26 @@ import { Input } from '../engine/input.js';
 import { HUD } from '../ui/HUD.js';
 import { Overlay } from '../ui/Overlay.js';
 import { Controls } from '../ui/Controls.js';
+import { SkillBar } from '../ui/SkillBar.js';
 import { Background } from './components/Background.js';
 import { GameScene } from './components/GameScene.js';
 import { Camera } from './components/Camera.js';
+import { DustParticles } from './components/DustParticles.js';
 import { BestScore } from './features/BestScore.js';
 import { Platforms } from './features/Platforms.js';
 import { CollectLetters } from './features/CollectLetters.js';
 import { Hazards } from './features/Hazards.js';
+import { Enemies } from './features/Enemies.js';
 import { ReachGoal } from './features/ReachGoal.js';
 import { PlayerMovement } from './features/PlayerMovement.js';
 import { PlayerHealth } from './features/PlayerHealth.js';
+import { HealingSkill } from './features/HealingSkill.js';
+import { SwordSkill } from './features/SwordSkill.js';
+import { CompanionSkill } from './features/CompanionSkill.js';
+import { FireballSkill } from './features/FireballSkill.js';
+import { IceSkill } from './features/IceSkill.js';
+import { BowSkill } from './features/BowSkill.js';
+import { PlayerShots } from './features/PlayerShots.js';
 import { WinLose } from './features/WinLose.js';
 
 export class Game {
@@ -22,19 +32,30 @@ export class Game {
     this.settings = engine.settings;
     const { canvas, settings, texts } = engine;
     this.platforms = new Platforms(settings.level.platforms);
-    this.collectLetters = new CollectLetters(settings.level.letters);
-    this.hazards = new Hazards(settings.level.hazard);
+    this.collectLetters = new CollectLetters(
+      settings.level.letters, settings.level.enemies, settings.letterDrops, settings.letterMagnet);
+    this.hazards = new Hazards(settings.level, this.platforms.items);
+    this.enemies = new Enemies(settings.level.enemies, this.platforms.items, settings.enemyAbilities);
     this.reachGoal = new ReachGoal(settings.level.goal);
     this.input = new Input(settings.controls.keys);
     this.player = new Player(settings.player);
     this.playerHealth = new PlayerHealth(settings.health);
+    this.healingSkill = new HealingSkill(settings.healingSkill);
+    this.swordSkill = new SwordSkill(settings.swordSkill);
+    this.companionSkill = new CompanionSkill(settings.companionSkill);
+    this.fireballSkill = new FireballSkill(settings.fireballSkill);
+    this.iceSkill = new IceSkill(settings.iceSkill);
+    this.bowSkill = new BowSkill(settings.bowSkill);
+    this.playerShots = new PlayerShots();
     this.playerMovement = new PlayerMovement(this.player, this.input, this.platforms, settings.level.width);
+    this.dust = new DustParticles(settings.player.dust);
     this.camera = new Camera(canvas.width, canvas.height, settings.level);
     this.camera.follow(this.player);
     this.background = new Background(settings.scene);
     this.hud = new HUD(settings.ui, texts, canvas.width);
     this.overlay = new Overlay(settings.ui, texts, settings.world);
     this.controls = new Controls(settings.ui, texts);
+    this.skillBar = new SkillBar(settings.ui, canvas.width);
     this.phase = 'ready';
     this.bestScore = new BestScore(settings.storageKey, this.collectLetters.items.length);
     this.winLose = new WinLose();
@@ -98,7 +119,18 @@ export class Game {
 
   restart() {
     this.player.reset();
+    this.playerMovement.reset();
+    this.dust.reset();
     this.playerHealth.reset();
+    this.healingSkill.reset();
+    this.swordSkill.reset();
+    this.companionSkill.reset();
+    this.fireballSkill.reset();
+    this.iceSkill.reset();
+    this.bowSkill.reset();
+    this.playerShots.reset();
+    this.hazards.reset();
+    this.enemies.reset();
     this.camera.follow(this.player);
     this.collectLetters.reset();
     this.winLose.reset();
@@ -110,6 +142,8 @@ export class Game {
   pause() {
     this.phase = 'paused';
     this.input.clear();
+    this.player.vx = 0;
+    this.playerMovement.reset();
   }
 
   resume() {
@@ -124,15 +158,28 @@ export class Game {
   }
 
   update(dt) {
+    this.dust.update(dt);
+    this.hazards.update(dt);
+    this.enemies.update(dt, this.player);
     this.playerHealth.update(dt);
     if (this.playerHealth.value > 0) {
-      this.playerMovement.update(dt);
+      if (this.playerMovement.update(dt)) this.dust.emit(this.player, this.player.facing);
       this.camera.follow(this.player);
-      if (this.hazards.hits(this.player)) this.playerHealth.takeDamage();
+      this.companionSkill.update(dt, this.player);
+      this.swordSkill.update(dt, this.player, this.enemies);
+      this.fireballSkill.update(dt, this.player, this.enemies, this.playerShots);
+      this.iceSkill.update(dt, this.player, this.enemies, this.playerShots);
+      this.bowSkill.update(dt, this.player, this.enemies, this.playerShots);
+      this.playerShots.update(dt, this.enemies);
+      const hazardHit = this.hazards.hits(this.player);
+      const enemyHit = this.enemies.hits(this.player);
+      if (hazardHit || enemyHit) this.playerHealth.takeDamage();
     }
+    this.healingSkill.update(dt, this.player, this.playerHealth);
+    this.collectLetters.releaseDrops(this.enemies.items);
     if (this.winLose.checkLoss(this.player, this.playerHealth, this.settings.level.bottom)) return this.endAttempt();
     if (this.playerHealth.value === 0) return;
-    if (this.collectLetters.collect(this.player)) this.bestScore.save(this.collectLetters.count);
+    if (this.collectLetters.update(dt, this.player)) this.bestScore.save(this.collectLetters.count);
     if (this.winLose.checkWin(this.player, this.reachGoal, this.collectLetters)) this.endAttempt();
   }
 }

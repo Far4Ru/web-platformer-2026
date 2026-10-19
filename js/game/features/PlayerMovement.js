@@ -4,18 +4,30 @@ export class PlayerMovement {
     this.input = input;
     this.platforms = platforms;
     this.worldWidth = worldWidth;
+    this.lastInput = 0;
+  }
+
+  reset() {
+    this.lastInput = 0;
   }
 
   update(dt) {
     const { player, input } = this;
     const { settings } = player;
-    player.vx = input.horizontal * settings.moveSpeed;
+    const horizontal = input.horizontal;
+    const targetSpeed = horizontal * settings.moveSpeed;
+    const change = (horizontal ? settings.acceleration : settings.deceleration) * dt;
+    player.vx += Math.sign(targetSpeed - player.vx) * Math.min(Math.abs(targetSpeed - player.vx), change);
+    if (horizontal) player.facing = horizontal;
     if (input.consumeJump() && player.grounded) {
       player.vy = -settings.jumpSpeed;
       player.grounded = false;
     }
+    const startedOnGround = horizontal !== 0 && horizontal !== this.lastInput && player.grounded;
+    this.lastInput = horizontal;
     player.vy = Math.min(player.vy + settings.gravity * dt, settings.maxFallSpeed);
     this.platforms.move(player, dt);
     player.x = Math.max(0, Math.min(this.worldWidth - player.width, player.x));
+    return startedOnGround;
   }
 }
