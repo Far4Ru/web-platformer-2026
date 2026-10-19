@@ -4,14 +4,13 @@ import { overlaps } from '../../engine/collision.js';
 import { TriggeredSpikes } from '../../entities/TriggeredSpikes.js';
 
 export class Enemies {
-  constructor(settings, platforms, abilities) {
-    this.abilities = abilities;
+  constructor(settings, platforms, abilities, bossAbilities = abilities) {
     this.projectiles = [];
     this.spikes = [];
     this.items = settings.map((entry) => {
       const platform = platforms[entry.platformIndex];
       if (!platform) throw new Error(`Enemy platform not found: ${entry.platformIndex}`);
-      return new Enemy(entry, platform, abilities);
+      return new Enemy(entry, platform, entry.boss ? bossAbilities : abilities);
     });
   }
 
@@ -21,32 +20,57 @@ export class Enemies {
     this.spikes = [];
   }
 
+  get bossDefeated() {
+    return this.items.every((enemy) => !enemy.boss || !enemy.alive);
+  }
+
   update(dt, player) {
     this.items.forEach((enemy) => {
       enemy.update(dt);
-      if (!enemy.alive || enemy.frozenFor > 0 || enemy.hurtTime > 0 || !enemy.ability) return;
-      enemy.abilityTimer -= dt;
-      if (enemy.abilityTimer > 0) return;
-      enemy.abilityTimer = enemy.settings.abilityInterval ?? this.abilities.interval;
-      if (enemy.ability === 'shoot') {
-        const direction = Math.sign(player.x - enemy.x) || enemy.direction;
-        const { shot } = this.abilities;
-        this.projectiles.push(new Projectile({
-          x: enemy.x + enemy.width / 2, y: enemy.y + enemy.height / 2,
-          width: shot.size, height: shot.size, vx: direction * shot.speed,
-          vy: 0, life: shot.life, kind: 'enemy',
-        }));
-      } else {
-        const { spikes } = this.abilities;
-        const x = Math.max(enemy.platform.x, Math.min(enemy.platform.x + enemy.platform.width - spikes.width,
-          enemy.x + enemy.direction * spikes.offset));
-        this.spikes.push(new TriggeredSpikes(x, enemy.platform.y, spikes));
+      if (!enemy.alive || enemy.frozenFor > 0 || enemy.hurtTime > 0) return;
+      for (const skill of enemy.skills) {
+        enemy.abilityTimers[skill] -= dt;
+        if (enemy.abilityTimers[skill] > 0) continue;
+        enemy.abilityTimers[skill] = enemy.settings.abilityInterval ?? enemy.abilities.interval;
+        this.activate(enemy, skill, player);
       }
     });
     this.projectiles.forEach((shot) => shot.update(dt));
     this.projectiles = this.projectiles.filter((shot) => shot.life > 0);
     this.spikes.forEach((spike) => spike.update(dt));
     this.spikes = this.spikes.filter((spike) => spike.life > 0);
+  }
+
+  activate(enemy, skill, player) {
+    if (skill === 'dash') return enemy.dashToward(player);
+    if (skill === 'jump') return enemy.jump();
+    if (skill === 'shoot') {
+      const { shot } = enemy.abilities;
+      const direction = Math.sign(player.x - enemy.x) || enemy.direction;
+      const count = shot.count ?? 1;
+      for (let index = 0; index < count; index++) {
+        const angle = (index - (count - 1) / 2) * (shot.spread ?? 0);
+        this.projectiles.push(new Projectile({
+          x: enemy.x + enemy.width / 2 - shot.size / 2,
+          y: enemy.y + enemy.height / 2 - shot.size / 2,
+          width: shot.size, height: shot.size,
+          vx: direction * Math.cos(angle) * shot.speed,
+          vy: Math.sin(angle) * shot.speed,
+          life: shot.life, kind: enemy.boss ? 'boss' : 'enemy',
+        }));
+      }
+      return;
+    }
+    if (skill === 'spikes') {
+      const { spikes } = enemy.abilities;
+      for (let index = 0; index < (spikes.count ?? 1); index++) {
+        const x = Math.max(enemy.platform.x, Math.min(enemy.platform.x + enemy.platform.width - spikes.width,
+          enemy.x + enemy.direction * (spikes.offset + index * (spikes.spacing ?? 0))));
+        const spike = new TriggeredSpikes(x, enemy.platform.y, spikes);
+        spike.boss = enemy.boss;
+        this.spikes.push(spike);
+      }
+    }
   }
 
   hits(player) {

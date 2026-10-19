@@ -13,12 +13,12 @@ export class PlayerShots {
     this.items.push(shot);
   }
 
-  update(dt, enemies) {
+  update(dt, enemies, damageMultiplier = 1) {
     for (const shot of this.items) {
       shot.update(dt);
       const enemy = enemies.items.find((target) => target.alive && overlaps(shot, target));
       if (enemy) {
-        enemy.takeDamage(shot.damage, shot.stun);
+        enemy.takeDamage(shot.damage * damageMultiplier, shot.stun);
         if (shot.freeze) enemy.freeze(shot.freeze);
         shot.life = 0;
       }

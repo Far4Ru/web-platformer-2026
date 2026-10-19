@@ -2,9 +2,10 @@ export function drawEnemy(ctx, enemy, art) {
   const { x, y, width, height, direction } = enemy;
   ctx.fillStyle = art.outline;
   ctx.fillRect(x, y + 3, width, height - 3);
-  ctx.fillStyle = enemy.frozenFor > 0 ? art.frozen : enemy.hurtTime > 0 ? art.hurt : art.body;
+  ctx.fillStyle = enemy.frozenFor > 0 ? art.frozen : enemy.hurtTime > 0 ? art.hurt
+    : enemy.boss ? art.boss : art.body;
   ctx.fillRect(x + 3, y, width - 6, height - 4);
-  ctx.fillStyle = art.highlight;
+  ctx.fillStyle = enemy.boss ? art.bossHighlight : art.highlight;
   ctx.fillRect(x + 6, y + 3, width - 12, 3);
   ctx.fillStyle = art.eye;
   ctx.fillRect(x + 7, y + 9, 5, 6);
@@ -13,6 +14,18 @@ export function drawEnemy(ctx, enemy, art) {
   const look = direction > 0 ? 2 : 0;
   ctx.fillRect(x + 7 + look, y + 11, 2, 3);
   ctx.fillRect(x + width - 12 + look, y + 11, 2, 3);
+  if (enemy.boss) {
+    ctx.fillStyle = art.outline;
+    ctx.fillRect(x + 10, y - 12, 10, 15);
+    ctx.fillRect(x + width - 20, y - 12, 10, 15);
+    ctx.fillStyle = art.bossHighlight;
+    ctx.fillRect(x + width / 2 - 10, y + 23, 20, 5);
+  }
+  if (enemy.dashFor > 0) {
+    ctx.strokeStyle = art.bossHighlight;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x - 3, y - 3, width + 6, height + 6);
+  }
 }
 
 export function drawEnemyHealthBar(ctx, enemy, art) {

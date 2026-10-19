@@ -11,12 +11,12 @@ export class PlayerMovement {
     this.lastInput = 0;
   }
 
-  update(dt) {
+  update(dt, speedMultiplier = 1) {
     const { player, input } = this;
     const { settings } = player;
     const horizontal = input.horizontal;
-    const targetSpeed = horizontal * settings.moveSpeed;
-    const change = (horizontal ? settings.acceleration : settings.deceleration) * dt;
+    const targetSpeed = horizontal * settings.moveSpeed * speedMultiplier;
+    const change = (horizontal ? settings.acceleration * speedMultiplier : settings.deceleration) * dt;
     player.vx += Math.sign(targetSpeed - player.vx) * Math.min(Math.abs(targetSpeed - player.vx), change);
     if (horizontal) player.facing = horizontal;
     if (input.consumeJump() && player.grounded) {

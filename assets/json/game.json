@@ -63,6 +63,13 @@
       "damage": "#ffc7cc"
     }
   },
+  "boosts": {
+    "items": {
+      "heal": { "amount": 1, "pickup": { "x": 500, "y": 250, "width": 28, "height": 28 } },
+      "speed": { "duration": 6, "multiplier": 1.5, "pickup": { "x": 3200, "y": 500, "width": 28, "height": 28 } },
+      "damage": { "duration": 8, "multiplier": 2, "pickup": { "x": 5900, "y": -300, "width": 28, "height": 28 } }
+    }
+  },
   "healingSkill": {
     "pickup": { "x": 1620, "y": 284, "width": 28, "height": 28 },
     "healAmount": 1,
@@ -101,8 +108,21 @@
   "enemyAbilities": {
     "chance": 0.7,
     "interval": 3,
+    "kinds": ["shoot", "spikes", "dash", "jump"],
     "shot": { "size": 10, "speed": 210, "life": 3 },
-    "spikes": { "width": 26, "height": 22, "offset": 35, "duration": 1.4, "riseTime": 0.16, "fallTime": 0.18 }
+    "spikes": { "width": 26, "height": 22, "offset": 35, "duration": 1.4, "riseTime": 0.16, "fallTime": 0.18 },
+    "dash": { "speedMultiplier": 3, "duration": 0.45 },
+    "jump": { "speed": 500, "gravity": 1350 }
+  },
+  "bossAbilities": {
+    "count": 3,
+    "interval": 2.6,
+    "stunMultiplier": 0.5,
+    "kinds": ["shoot", "spikes", "dash", "jump"],
+    "shot": { "size": 16, "speed": 315, "life": 3.5, "count": 3, "spread": 0.22 },
+    "spikes": { "width": 42, "height": 34, "offset": 62, "count": 2, "spacing": 50, "duration": 1.7, "riseTime": 0.13, "fallTime": 0.18 },
+    "dash": { "speedMultiplier": 4, "duration": 0.65 },
+    "jump": { "speed": 650, "gravity": 1350 }
   },
   "companionSkill": {
     "pickup": { "x": 2200, "y": 214, "width": 28, "height": 28 },
@@ -240,6 +260,8 @@
       "hangingZones": [[12, 13], [24, 26], [32, 33], [36, 38]],
       "hanging": { "width": 40, "height": 27, "edgeInset": 15 },
       "skillIndices": { "healing": 4, "sword": 7, "companion": 11, "fireball": 19, "ice": 27, "bow": 34 },
+      "boostZones": { "heal": [2, 6], "speed": [15, 21], "damage": [30, 37] },
+      "bossRoute": { "steps": 3, "stepWidth": 170, "gap": 55, "deadEndDrop": [45, 65], "firstRise": 90, "rise": 65, "arenaWidth": 680, "arenaGap": 60, "arenaRise": 65, "bossWidth": 76, "bossHeight": 66, "bossHealth": 15, "bossSpeed": 72, "bossOffsetX": 230, "goalInset": 20 },
       "pickup": { "size": 28, "lift": 46, "edgeInset": 15 },
       "goalEdgeInset": 12,
       "topPadding": 180,
@@ -406,6 +428,8 @@
       "body": "#a56bd2",
       "hurt": "#eed6ff",
       "frozen": "#a9ddff",
+      "boss": "#d16583",
+      "bossHighlight": "#ffd6a0",
       "highlight": "#d7aaf2",
       "eye": "#ffffff",
       "pupil": "#253242"
@@ -430,7 +454,18 @@
       "enemy": "#ff91bf",
       "shoot": "#ff91bf",
       "spikes": "#c28bff",
+      "dash": "#ffe08b",
+      "jump": "#9eebff",
+      "bossShot": "#ffb182",
+      "bossSpikes": "#f2689a",
       "spikeSlot": "#342d46"
+    },
+    "boosts": {
+      "halo": "#fff1ba",
+      "mark": "#ffffff",
+      "heal": "#ff777f",
+      "speed": "#ffe178",
+      "damage": "#ff9a64"
     },
     "letterColor": "#ffe8a0",
     "letterLine": "#ad793e",
@@ -503,6 +538,19 @@
         "bow": "#e1bd8f",
         "cooldown": "rgba(8, 23, 40, 0.6)",
         "text": "#ffffff"
+      }
+    },
+    "boosts": {
+      "size": 38,
+      "gap": 8,
+      "y": 78,
+      "colors": {
+        "border": "#77b6c1",
+        "panel": "#102940",
+        "text": "#ffffff",
+        "heal": "#ff777f",
+        "speed": "#ffe178",
+        "damage": "#ff9a64"
       }
     },
     "icons": {

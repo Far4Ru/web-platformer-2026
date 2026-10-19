@@ -8,6 +8,7 @@ import { drawHealthBar } from '../../mock/health.js';
 import { drawHealingBeam, drawHealingPickup } from '../../mock/healingSkill.js';
 import { drawSwordAttack, drawSwordPickup } from '../../mock/swordSkill.js';
 import { drawDust } from '../../mock/dust.js';
+import { drawBoostPickup } from '../../mock/boosts.js';
 import { drawAbilityPickup, drawCompanion, drawAbilityShot,
   drawEnemyAbility, drawEnemyShot, drawEnemySpikes } from '../../mock/abilities.js';
 
@@ -45,8 +46,11 @@ export class GameScene {
     for (const kind of ['companion', 'fireball', 'ice', 'bow']) {
       drawAbilityPickup(ctx, game[`${kind}Skill`].pickup, art.abilities, kind, time);
     }
+    for (const [kind, pickup] of Object.entries(game.boosts.pickups)) {
+      drawBoostPickup(ctx, pickup, kind, art.boosts, time);
+    }
     drawGoal(ctx, goal, game.reachGoal.progress(game.collectLetters),
-      game.reachGoal.isReady(game.collectLetters), art);
+      game.reachGoal.isReady(game.collectLetters, game.enemies.bossDefeated), art);
     drawDust(ctx, game.dust.particles, game.dust.settings.life);
     drawHealingBeam(ctx, player, game.camera, game.healingSkill);
     drawCompanion(ctx, game.companionSkill.companion, player, art.abilities);
@@ -59,6 +63,7 @@ export class GameScene {
     if (state !== 'playing') overlay.render(ctx, state);
     hud.render(ctx, game.collectLetters.count, letters.length, game.bestScore.value);
     game.skillBar.render(ctx, game);
+    game.boostBar.render(ctx, game.boosts);
     controls.render(ctx, state);
   }
 }

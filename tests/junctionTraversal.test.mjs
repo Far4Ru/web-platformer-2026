@@ -78,5 +78,15 @@ test('both roads and backward objectives are reachable with solid ceilings', () 
         `seed ${seed}: return route at ${junction.startIndex}, hop ${index}`);
       }
     }
+    const bossPath = [level.platforms[settings.level.generation.mainPlatforms - 2],
+      ...level.layout.bossRoute.map((index) => level.platforms[index])];
+    const mainEnd = level.platforms[settings.level.generation.mainPlatforms - 1];
+    assert(canReach(bossPath[0], mainEnd, solid, false)
+      || canReach(bossPath[0], mainEnd, solid, true),
+    `seed ${seed}: lower route of final fork is blocked`);
+    for (let index = 1; index < bossPath.length; index++) {
+      assert(canReach(bossPath[index - 1], bossPath[index], solid, true),
+        `seed ${seed}: boss route hop ${index}`);
+    }
   }
 });

@@ -88,7 +88,9 @@ export function generateLevel(template, requestedSeed) {
           - (junction.pattern === 'ridge' && index === junction.startIndex + 3
             ? rules.ridgePeak : 0)
           + between(random, -rules.junctionJitter, rules.junctionJitter)
-      : routeHeight(index, anchors) + between(random, -rules.heightJitter, rules.heightJitter);
+      : index === rules.mainPlatforms - 1
+        ? previous.y + between(random, ...rules.bossRoute.deadEndDrop)
+        : routeHeight(index, anchors) + between(random, -rules.heightJitter, rules.heightJitter);
     const y = Math.max(rules.minY, Math.min(rules.maxY,
       Math.max(previous.y - rules.maxStepY, Math.min(previous.y + rules.maxStepY, Math.round(target)))));
     const widthRange = junction || junctions.some((entry) => entry.startIndex === index)
@@ -149,11 +151,48 @@ export function generateLevel(template, requestedSeed) {
     height: rules.letterSize,
   })).concat(objectiveLetters);
 
+  const bossRoute = [];
+  const bossRules = rules.bossRoute;
+  let previousBossPlatform = route.at(-2);
+  for (let step = 0; step < bossRules.steps; step++) {
+    const platform = {
+      x: step === 0 ? route.at(-1).x
+        : previousBossPlatform.x + previousBossPlatform.width + bossRules.gap,
+      y: previousBossPlatform.y - (step === 0 ? bossRules.firstRise : bossRules.rise),
+      width: bossRules.stepWidth, height: rules.platformHeight,
+    };
+    bossRoute.push(platforms.length);
+    platforms.push(platform);
+    letters.push({ x: platform.x + rules.letterOffsetX, y: platform.y - rules.letterLift,
+      width: rules.letterSize, height: rules.letterSize });
+    previousBossPlatform = platform;
+  }
+  const arena = {
+    x: previousBossPlatform.x + previousBossPlatform.width + bossRules.arenaGap,
+    y: previousBossPlatform.y - bossRules.arenaRise,
+    width: bossRules.arenaWidth, height: rules.platformHeight,
+  };
+  const arenaIndex = platforms.length;
+  bossRoute.push(arenaIndex);
+  platforms.push(arena);
+
   const skillPlatforms = new Set(Object.values(rules.skillIndices).map(sharedIndex));
   const enemyIndices = pickFromZones(random, rules.enemyZones, new Set(skillPlatforms), sharedIndex);
   const hazardIndices = pickFromZones(random, rules.hazardZones, new Set(skillPlatforms));
   const risingIndices = pickFromZones(random, rules.risingZones, new Set(skillPlatforms));
   const hangingIndices = pickFromZones(random, rules.hangingZones);
+  const occupied = new Set([...skillPlatforms, ...enemyIndices, ...hazardIndices,
+    ...risingIndices, ...hangingIndices]);
+  const boostIndices = Object.fromEntries(Object.entries(rules.boostZones).map(([kind, zone]) => {
+    const available = Array.from({ length: rules.mainPlatforms - 2 }, (_, offset) =>
+      offset + 1).filter((index) => sharedIndex(index) === index && !occupied.has(index));
+    const preferred = available.filter((index) => index >= zone[0] && index <= zone[1]);
+    const candidates = preferred.length ? preferred : available.sort((left, right) =>
+      Math.abs(left - (zone[0] + zone[1]) / 2) - Math.abs(right - (zone[0] + zone[1]) / 2)).slice(0, 1);
+    const index = candidates[between(random, 0, candidates.length - 1)];
+    occupied.add(index);
+    return [kind, index];
+  }));
 
   const enemies = enemyIndices.map((platformIndex, index) => {
     const platform = route[platformIndex];
@@ -167,6 +206,13 @@ export function generateLevel(template, requestedSeed) {
       maxHealth: rules.enemy.health[index],
       abilityInterval: between(random, ...rules.enemy.abilityIntervalTenths) / 10,
     };
+  });
+  enemies.push({
+    platformIndex: arenaIndex,
+    x: arena.x + bossRules.bossOffsetX,
+    width: bossRules.bossWidth, height: bossRules.bossHeight,
+    speed: bossRules.bossSpeed, direction: -1,
+    maxHealth: bossRules.bossHealth, boss: true,
   });
 
   const hazard = hazardIndices.map((index) => {
@@ -196,15 +242,20 @@ export function generateLevel(template, requestedSeed) {
     return [kind, { x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
       y: platform.y - rules.pickup.lift, width: rules.pickup.size, height: rules.pickup.size }];
   }));
-  const last = route.at(-1);
+  const boostPickups = Object.fromEntries(Object.entries(boostIndices).map(([kind, index]) => {
+    const platform = route[index];
+    return [kind, { x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
+      y: platform.y - rules.pickup.lift, width: rules.pickup.size, height: rules.pickup.size }];
+  }));
+  const last = arena;
   const goal = { ...template.goal,
-    x: last.x + last.width - template.goal.width - rules.goalEdgeInset,
-    y: last.y - template.goal.height };
+    x: last.x + last.width - template.goal.width - bossRules.goalInset,
+    y: last.y - template.goal.height, requiresBoss: true };
 
   return {
     ...template, seed, platforms, letters, enemies, hazard, risingSpikes, hangingSpikes,
-    layout: { profileIndex, junctions },
-    skillPickups, goal,
+    layout: { profileIndex, junctions, bossRoute, arenaIndex },
+    skillPickups, boostPickups, goal,
     width: last.x + last.width + rules.endPadding,
     top: Math.min(...platforms.map((platform) => platform.y)) - rules.topPadding,
     bottom: Math.max(...platforms.map((platform) => platform.y)) + rules.bottomPadding,

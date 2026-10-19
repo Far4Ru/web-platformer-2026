@@ -14,7 +14,7 @@ export class SwordSkill {
     this.direction = 1;
   }
 
-  activate(player, enemies) {
+  activate(player, enemies, damageMultiplier = 1) {
     const { range, verticalRange } = this.settings;
     const centerX = player.x + player.width / 2;
     const centerY = player.y + player.height / 2;
@@ -34,19 +34,19 @@ export class SwordSkill {
       : player.facing;
     for (const enemy of nearby) {
       const side = Math.sign(enemy.x + enemy.width / 2 - centerX) || this.direction;
-      if (side === this.direction) enemy.takeDamage(this.settings.damage, this.settings.stunDuration);
+      if (side === this.direction) enemy.takeDamage(this.settings.damage * damageMultiplier, this.settings.stunDuration);
     }
     this.cooldown = this.settings.interval;
     this.attackTime = this.settings.attackDuration;
   }
 
-  update(dt, player, enemies) {
+  update(dt, player, enemies, damageMultiplier = 1) {
     this.attackTime = Math.max(0, this.attackTime - dt);
     if (!this.pickup.collected) {
-      if (this.pickup.tryCollect(player)) this.activate(player, enemies);
+      if (this.pickup.tryCollect(player)) this.activate(player, enemies, damageMultiplier);
       return;
     }
     this.cooldown = Math.max(0, this.cooldown - dt);
-    if (this.cooldown === 0) this.activate(player, enemies);
+    if (this.cooldown === 0) this.activate(player, enemies, damageMultiplier);
   }
 }

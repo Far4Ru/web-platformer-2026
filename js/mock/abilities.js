@@ -69,15 +69,19 @@ export function drawAbilityShot(ctx, shot, art) {
 }
 
 export function drawEnemyAbility(ctx, enemy, art) {
-  if (!enemy.ability) return;
-  ctx.fillStyle = art[enemy.ability];
-  ctx.fillRect(enemy.x + enemy.width / 2 - 4, enemy.y - 19, 8, 5);
+  const width = enemy.skills.length * 10 - 2;
+  enemy.skills.forEach((skill, index) => {
+    ctx.fillStyle = art[skill];
+    ctx.fillRect(enemy.x + enemy.width / 2 - width / 2 + index * 10,
+      enemy.y - (enemy.boss ? 24 : 19), 8, 5);
+  });
 }
 
 export function drawEnemyShot(ctx, shot, art) {
-  ctx.fillStyle = art.shoot;
+  ctx.fillStyle = shot.kind === 'boss' ? art.bossShot : art.shoot;
   ctx.beginPath();
-  ctx.arc(shot.x + shot.width / 2, shot.y + shot.height / 2, 5, 0, Math.PI * 2);
+  ctx.arc(shot.x + shot.width / 2, shot.y + shot.height / 2,
+    shot.width / 2, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -85,7 +89,7 @@ export function drawEnemySpikes(ctx, spikes, art) {
   ctx.fillStyle = art.spikeSlot;
   ctx.fillRect(spikes.x, spikes.baseY - 3, spikes.width, 4);
   if (spikes.height <= 0) return;
-  ctx.fillStyle = art.spikes;
+  ctx.fillStyle = spikes.boss ? art.bossSpikes : art.spikes;
   for (let x = spikes.x; x < spikes.x + spikes.width; x += 7) {
     const width = Math.min(7, spikes.x + spikes.width - x);
     ctx.beginPath();

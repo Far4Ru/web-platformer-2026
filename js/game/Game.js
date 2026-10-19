@@ -4,6 +4,7 @@ import { HUD } from '../ui/HUD.js';
 import { Overlay } from '../ui/Overlay.js';
 import { Controls } from '../ui/Controls.js';
 import { SkillBar } from '../ui/SkillBar.js';
+import { BoostBar } from '../ui/BoostBar.js';
 import { Background } from './components/Background.js';
 import { GameScene } from './components/GameScene.js';
 import { Camera } from './components/Camera.js';
@@ -16,6 +17,7 @@ import { Enemies } from './features/Enemies.js';
 import { ReachGoal } from './features/ReachGoal.js';
 import { PlayerMovement } from './features/PlayerMovement.js';
 import { PlayerHealth } from './features/PlayerHealth.js';
+import { Boosts } from './features/Boosts.js';
 import { HealingSkill } from './features/HealingSkill.js';
 import { SwordSkill } from './features/SwordSkill.js';
 import { CompanionSkill } from './features/CompanionSkill.js';
@@ -41,6 +43,7 @@ export class Game {
     this.overlay = new Overlay(settings.ui, texts, settings.world);
     this.controls = new Controls(settings.ui, texts);
     this.skillBar = new SkillBar(settings.ui, canvas.width);
+    this.boostBar = new BoostBar(settings.ui, canvas.width);
     this.phase = 'ready';
     this.hasStarted = false;
     this.bestScore = new BestScore(settings.storageKey, this.collectLetters.items.length);
@@ -56,7 +59,8 @@ export class Game {
     this.collectLetters = new CollectLetters(
       this.level.letters, this.level.enemies, settings.letterDrops, settings.letterMagnet);
     this.hazards = new Hazards(this.level, this.platforms.items);
-    this.enemies = new Enemies(this.level.enemies, this.platforms.items, settings.enemyAbilities);
+    this.enemies = new Enemies(this.level.enemies, this.platforms.items,
+      settings.enemyAbilities, settings.bossAbilities);
     this.reachGoal = new ReachGoal(this.level.goal);
     const skillSettings = (kind) => ({ ...settings[`${kind}Skill`],
       pickup: this.level.skillPickups?.[kind] ?? settings[`${kind}Skill`].pickup });
@@ -66,6 +70,7 @@ export class Game {
     this.fireballSkill = new FireballSkill(skillSettings('fireball'));
     this.iceSkill = new IceSkill(skillSettings('ice'));
     this.bowSkill = new BowSkill(skillSettings('bow'));
+    this.boosts = new Boosts(settings.boosts, this.level.boostPickups);
     this.playerShots = new PlayerShots();
     this.playerMovement = new PlayerMovement(this.player, this.input, this.platforms, this.level.width);
     this.dust = new DustParticles(settings.player.dust);
@@ -163,14 +168,15 @@ export class Game {
     this.enemies.update(dt, this.player);
     this.playerHealth.update(dt);
     if (this.playerHealth.value > 0) {
-      if (this.playerMovement.update(dt)) this.dust.emit(this.player, this.player.facing);
+      this.boosts.update(dt, this.player, this.playerHealth);
+      if (this.playerMovement.update(dt, this.boosts.speedMultiplier)) this.dust.emit(this.player, this.player.facing);
       this.camera.follow(this.player);
       this.companionSkill.update(dt, this.player);
-      this.swordSkill.update(dt, this.player, this.enemies);
+      this.swordSkill.update(dt, this.player, this.enemies, this.boosts.damageMultiplier);
       this.fireballSkill.update(dt, this.player, this.enemies, this.playerShots);
       this.iceSkill.update(dt, this.player, this.enemies, this.playerShots);
       this.bowSkill.update(dt, this.player, this.enemies, this.playerShots);
-      this.playerShots.update(dt, this.enemies);
+      this.playerShots.update(dt, this.enemies, this.boosts.damageMultiplier);
       const hazardHit = this.hazards.hits(this.player);
       const enemyHit = this.enemies.hits(this.player);
       if (hazardHit || enemyHit) this.playerHealth.takeDamage();
@@ -180,6 +186,7 @@ export class Game {
     if (this.winLose.checkLoss(this.player, this.playerHealth, this.level.bottom)) return this.endAttempt();
     if (this.playerHealth.value === 0) return;
     if (this.collectLetters.update(dt, this.player)) this.bestScore.save(this.collectLetters.count);
-    if (this.winLose.checkWin(this.player, this.reachGoal, this.collectLetters)) this.endAttempt();
+    if (this.winLose.checkWin(this.player, this.reachGoal, this.collectLetters,
+      this.enemies.bossDefeated)) this.endAttempt();
   }
 }
