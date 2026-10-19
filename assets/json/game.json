@@ -1,0 +1,132 @@
+{
+  "storageKey": "star-mail-best",
+  "world": { "width": 960, "height": 540 },
+  "maxFrameStep": 0.0333333333,
+  "controls": {
+    "pauseKey": "KeyP",
+    "keys": {
+      "ArrowLeft": "left",
+      "KeyA": "left",
+      "ArrowRight": "right",
+      "KeyD": "right",
+      "Space": "jump",
+      "KeyW": "jump",
+      "ArrowUp": "jump"
+    }
+  },
+  "player": {
+    "spawn": { "x": 78, "y": 420 },
+    "width": 32,
+    "height": 40,
+    "moveSpeed": 245,
+    "jumpSpeed": 620,
+    "gravity": 1450,
+    "maxFallSpeed": 900,
+    "colors": {
+      "outline": "#10334b",
+      "face": "#ffe6ac",
+      "coat": "#f47872",
+      "eye": "#ffffff",
+      "shoes": "#274456"
+    },
+    "sprite": [
+      { "x": 2, "y": 3, "width": 28, "height": 37, "color": "outline" },
+      { "x": 5, "y": 0, "width": 22, "height": 19, "color": "face" },
+      { "x": 2, "y": 18, "width": 28, "height": 19, "color": "coat" },
+      { "x": 19, "y": 7, "width": 4, "height": 4, "color": "eye" },
+      { "x": 2, "y": 36, "width": 11, "height": 4, "color": "shoes" },
+      { "x": 20, "y": 36, "width": 11, "height": 4, "color": "shoes" }
+    ]
+  },
+  "level": {
+    "platforms": [
+      { "x": 45, "y": 460, "width": 255, "height": 24 },
+      { "x": 240, "y": 380, "width": 160, "height": 24 },
+      { "x": 410, "y": 300, "width": 160, "height": 24 },
+      { "x": 580, "y": 220, "width": 160, "height": 24 },
+      { "x": 750, "y": 140, "width": 175, "height": 24 }
+    ],
+    "letters": [
+      { "x": 268, "y": 343, "width": 24, "height": 24 },
+      { "x": 443, "y": 263, "width": 24, "height": 24 },
+      { "x": 613, "y": 183, "width": 24, "height": 24 }
+    ],
+    "hazard": { "x": 343, "y": 360, "width": 32, "height": 20 },
+    "goal": { "x": 845, "y": 86, "width": 34, "height": 54 }
+  },
+  "scene": {
+    "skyTop": "#12304f",
+    "skyBottom": "#357a88",
+    "starColor": "#e3f9ff",
+    "starCount": 46,
+    "starXMultiplier": 173,
+    "starYMultiplier": 97,
+    "starXOffset": 51,
+    "starYOffset": 33,
+    "starHeight": 390,
+    "starOpacityBase": 0.35,
+    "starOpacityAmplitude": 0.25,
+    "starTwinkleSpeed": 2,
+    "starSize": 2,
+    "largeStarSize": 3,
+    "largeStarEvery": 7,
+    "hillColor": "#18475f",
+    "hillPoints": [[0, 540], [0, 405], [160, 450], [305, 355], [480, 440], [700, 355], [960, 450], [960, 540]],
+    "platformShadow": "#183b53",
+    "platformTop": "#73d8c9",
+    "platformFace": "#376d78",
+    "platformTopHeight": 8,
+    "platformShadowOffset": { "x": 3, "y": 7 },
+    "hazardColor": "#f4777b",
+    "hazardToothWidth": 8,
+    "letterColor": "#ffe8a0",
+    "letterLine": "#ad793e",
+    "letterLineWidth": 2,
+    "letterBottomInset": 5,
+    "letterFold": [[1, 1], [12, 11], [23, 1]],
+    "letterBobSpeed": 3,
+    "letterBobAmount": 3,
+    "goalBody": "#ffe7a4",
+    "goalRoof": "#fff3c5",
+    "goalLocked": "#e8a47e",
+    "goalReady": "#6ef0d6",
+    "goalParts": [
+      { "x": 6, "y": 10, "width": 22, "height": 44, "color": "goalBody" },
+      { "x": 2, "y": 0, "width": 30, "height": 12, "color": "goalRoof" },
+      { "x": 11, "y": 19, "width": 12, "height": 13, "color": "goalLight" }
+    ]
+  },
+  "ui": {
+    "font": "Alice, serif",
+    "colors": {
+      "panel": "#102940",
+      "panelBorder": "#77b6c1",
+      "text": "#edf5ff",
+      "muted": "#c4d6e5",
+      "accent": "#6be7df",
+      "gold": "#fff1b8",
+      "button": "#28b9aa",
+      "buttonText": "#072a32",
+      "veil": "rgba(8, 23, 40, 0.78)",
+      "touch": "rgba(16, 41, 64, 0.75)"
+    },
+    "counters": {
+      "score": { "x": 20, "y": 18, "width": 132, "height": 56 },
+      "best": { "x": 164, "y": 18, "width": 132, "height": 56 }
+    },
+    "icons": {
+      "pause": { "x": 830, "y": 18, "width": 52, "height": 52 },
+      "restart": { "x": 892, "y": 18, "width": 52, "height": 52 }
+    },
+    "overlay": {
+      "panel": { "x": 250, "y": 130, "width": 460, "height": 280 },
+      "button": { "x": 350, "y": 332, "width": 260, "height": 54 }
+    },
+    "touch": {
+      "left": { "x": 22, "y": 426, "width": 128, "height": 78 },
+      "right": { "x": 162, "y": 426, "width": 128, "height": 78 },
+      "jump": { "x": 800, "y": 426, "width": 138, "height": 78 }
+    },
+    "hintY": 528
+  }
+}

@@ -4,51 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#11243a" />
-    <title>Звёздная почта — платформер</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Звёздная почта</title>
+    <link rel="stylesheet" href="styles/style.css" />
   </head>
   <body>
-    <main class="page">
-      <header class="heading">
-        <div>
-          <p class="eyebrow">Мини-игра на JavaScript</p>
-          <h1>Звёздная почта</h1>
-          <p>Собери три письма и доставь их к маяку.</p>
-        </div>
-        <div class="scores" aria-live="polite">
-          <span>Письма <strong id="score">0 / 3</strong></span>
-          <span>Рекорд <strong id="best">0</strong></span>
-        </div>
-      </header>
-
-      <section class="game-shell" aria-label="Игровое поле">
-        <canvas id="game" width="960" height="540" aria-label="Платформер: соберите письма и доберитесь до маяка"></canvas>
-        <div class="overlay" id="overlay">
-          <div class="overlay-card">
-            <p class="eyebrow" id="overlay-kicker">Готов к отправке?</p>
-            <h2 id="overlay-title">Доставь звёздную почту</h2>
-            <p id="overlay-text">Поднимайся по платформам, собери три письма и избегай шипов.</p>
-            <button id="primary-button" type="button">Начать игру</button>
-          </div>
-        </div>
-      </section>
-
-      <div class="toolbar">
-        <p class="hint">← → или A/D — движение · Space или W — прыжок · P — пауза</p>
-        <div class="actions">
-          <button id="pause-button" type="button" disabled>Пауза</button>
-          <button id="restart-button" type="button">Заново</button>
-        </div>
-      </div>
-
-      <div class="touch-controls" aria-label="Экранное управление">
-        <div class="touch-move">
-          <button type="button" data-control="left" aria-label="Двигаться влево">←</button>
-          <button type="button" data-control="right" aria-label="Двигаться вправо">→</button>
-        </div>
-        <button type="button" data-control="jump" aria-label="Прыгнуть">Прыжок ↑</button>
-      </div>
-    </main>
-    <script type="module" src="main.js"></script>
+    <canvas id="game" width="960" height="540" aria-label="Звёздная почта — игра-платформер"></canvas>
+    <script type="module" src="js/main.js"></script>
   </body>
 </html>
