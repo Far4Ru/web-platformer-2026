@@ -1,11 +1,20 @@
 export function drawPlatform(ctx, platform, scene) {
+  if (platform.holeFor > 0) {
+    const leftWidth = platform.holeX - platform.x;
+    const rightX = platform.holeX + platform.holeWidth;
+    drawPlatform(ctx, { ...platform, width: leftWidth, holeFor: 0 }, scene);
+    drawPlatform(ctx, { ...platform, x: rightX,
+      width: platform.x + platform.width - rightX, holeFor: 0 }, scene);
+    return;
+  }
   if (platform.fake) {
     ctx.save();
     ctx.globalAlpha = scene.fakePlatformOpacity;
   }
   ctx.fillStyle = scene.platformShadow;
   ctx.fillRect(platform.x + scene.platformShadowOffset.x, platform.y + scene.platformShadowOffset.y, platform.width, platform.height);
-  ctx.fillStyle = scene.platformTop;
+  ctx.fillStyle = platform.surface === 'ice' ? scene.platformTopIce
+    : platform.surface === 'swamp' ? scene.platformTopSwamp : scene.platformTop;
   ctx.fillRect(platform.x, platform.y, platform.width, scene.platformTopHeight);
   ctx.fillStyle = scene.platformFace;
   ctx.fillRect(platform.x, platform.y + scene.platformTopHeight, platform.width, platform.height - scene.platformTopHeight);

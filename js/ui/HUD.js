@@ -10,8 +10,8 @@ export class HUD {
     this.best = new Counter(ui.counters.best, texts.bestLabel, ui);
   }
 
-  render(ctx, collected, total, best) {
-    this.score.render(ctx, `${collected} / ${total}`);
+  render(ctx, collected, best) {
+    this.score.render(ctx, collected);
     this.best.render(ctx, best);
     ctx.save();
     drawHintPanel(ctx, this.worldWidth, this.ui.hintY, this.ui.colors.panel);

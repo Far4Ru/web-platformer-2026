@@ -14,6 +14,7 @@ export class Controls {
 
   hit(point, state) {
     if (contains(this.ui.icons.restart, point)) return 'restart';
+    if (contains(this.ui.icons.sound, point)) return 'sound';
     if (['playing', 'paused'].includes(state) && contains(this.ui.icons.pause, point)) return 'pause';
     if (state === 'playing' && this.showTouch) {
       for (const [action, rect] of Object.entries(this.ui.touch)) {
@@ -23,8 +24,9 @@ export class Controls {
     return null;
   }
 
-  render(ctx, state) {
+  render(ctx, state, muted = false) {
     drawIcon(ctx, this.ui.icons.pause, 'pause', this.ui.colors, state === 'paused', !['playing', 'paused'].includes(state));
+    drawIcon(ctx, this.ui.icons.sound, 'sound', this.ui.colors, muted);
     drawIcon(ctx, this.ui.icons.restart, 'restart', this.ui.colors);
     if (state === 'playing' && this.showTouch) {
       for (const [action, rect] of Object.entries(this.ui.touch)) {

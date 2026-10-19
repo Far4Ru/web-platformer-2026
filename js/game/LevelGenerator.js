@@ -24,8 +24,15 @@ function shuffled(random, items) {
 
 function pickFromZones(random, zones, excluded = new Set(), project = (index) => index) {
   return zones.map(([first, last]) => {
-    const candidates = Array.from({ length: last - first + 1 }, (_, index) => first + index)
-      .filter((index) => !excluded.has(project(index)));
+    let radius = 0;
+    let candidates = [];
+    while (!candidates.length) {
+      candidates = Array.from({ length: last - first + 1 + radius * 2 },
+        (_, index) => first - radius + index)
+        .filter((index) => index > 0 && index < zones.at(-1)[1] + 2
+          && !excluded.has(project(index)));
+      radius++;
+    }
     const choice = candidates[between(random, 0, candidates.length - 1)];
     const result = project(choice);
     excluded.add(result);
@@ -89,7 +96,7 @@ export function generateLevel(template, requestedSeed) {
             ? rules.ridgePeak : 0)
           + between(random, -rules.junctionJitter, rules.junctionJitter)
       : index === rules.mainPlatforms - 1
-        ? previous.y + between(random, ...rules.bossRoute.deadEndDrop)
+        ? previous.y + between(random, ...rules.finishRoute.entryDrop)
         : routeHeight(index, anchors) + between(random, -rules.heightJitter, rules.heightJitter);
     const y = Math.max(rules.minY, Math.min(rules.maxY,
       Math.max(previous.y - rules.maxStepY, Math.min(previous.y + rules.maxStepY, Math.round(target)))));
@@ -99,9 +106,9 @@ export function generateLevel(template, requestedSeed) {
   }
 
   const platforms = [...route];
-  const letterPlatforms = route.slice(1).filter((_, offset) => !junctions.some((junction) =>
+  const coinPlatforms = route.slice(1).filter((_, offset) => !junctions.some((junction) =>
     offset + 1 > junction.startIndex && offset + 1 < junction.endIndex));
-  const objectiveLetters = [];
+  const objectiveCoins = [];
   for (const junction of junctions) {
     const upper = route.slice(junction.startIndex + 1, junction.endIndex);
     const baseY = route[junction.startIndex].y;
@@ -118,7 +125,7 @@ export function generateLevel(template, requestedSeed) {
     });
     junction.upperPlatformIndices = upper.map((_, offset) => junction.startIndex + 1 + offset);
     junction.lowerPlatformIndices = lower.map((platform) => platforms.indexOf(platform));
-    letterPlatforms.push(upper[0], upper.at(-1), lower[0], lower.at(-1));
+    coinPlatforms.push(upper[0], upper.at(-1), lower[0], lower.at(-1));
 
     const backtrack = [
       { x: upper[1].x + (upper[1].width - rules.backtrackWidth) / 2,
@@ -138,18 +145,18 @@ export function generateLevel(template, requestedSeed) {
     platforms.push(...backtrack, endpoint);
     if (!endpoint.fake) {
       for (const offsetX of rules.backtrackRewardOffsets) {
-        objectiveLetters.push({ x: endpoint.x + offsetX, y: endpoint.y - rules.letterLift,
-          width: rules.letterSize, height: rules.letterSize });
+        objectiveCoins.push({ x: endpoint.x + offsetX, y: endpoint.y - rules.coinLift,
+          width: rules.coinSize, height: rules.coinSize });
       }
     }
   }
 
-  const letters = letterPlatforms.map((platform) => ({
-    x: platform.x + Math.min(rules.letterOffsetX, (platform.width - rules.letterSize) / 2),
-    y: platform.y - rules.letterLift,
-    width: rules.letterSize,
-    height: rules.letterSize,
-  })).concat(objectiveLetters);
+  const coins = coinPlatforms.map((platform) => ({
+    x: platform.x + Math.min(rules.coinOffsetX, (platform.width - rules.coinSize) / 2),
+    y: platform.y - rules.coinLift,
+    width: rules.coinSize,
+    height: rules.coinSize,
+  })).concat(objectiveCoins);
 
   const bossRoute = [];
   const bossRules = rules.bossRoute;
@@ -163,8 +170,8 @@ export function generateLevel(template, requestedSeed) {
     };
     bossRoute.push(platforms.length);
     platforms.push(platform);
-    letters.push({ x: platform.x + rules.letterOffsetX, y: platform.y - rules.letterLift,
-      width: rules.letterSize, height: rules.letterSize });
+    coins.push({ x: platform.x + rules.coinOffsetX, y: platform.y - rules.coinLift,
+      width: rules.coinSize, height: rules.coinSize });
     previousBossPlatform = platform;
   }
   const arena = {
@@ -176,21 +183,53 @@ export function generateLevel(template, requestedSeed) {
   bossRoute.push(arenaIndex);
   platforms.push(arena);
 
-  const skillPlatforms = new Set(Object.values(rules.skillIndices).map(sharedIndex));
-  const enemyIndices = pickFromZones(random, rules.enemyZones, new Set(skillPlatforms), sharedIndex);
-  const hazardIndices = pickFromZones(random, rules.hazardZones, new Set(skillPlatforms));
-  const risingIndices = pickFromZones(random, rules.risingZones, new Set(skillPlatforms));
+  const finishRules = rules.finishRoute;
+  const finishRoute = [];
+  let previousFinishPlatform = route.at(-1);
+  for (let step = 0; step < finishRules.steps; step++) {
+    const platform = {
+      x: previousFinishPlatform.x + previousFinishPlatform.width + finishRules.gap,
+      y: route.at(-1).y,
+      width: finishRules.stepWidth, height: rules.platformHeight,
+    };
+    finishRoute.push(platforms.length);
+    platforms.push(platform);
+    coins.push({ x: platform.x + rules.coinOffsetX, y: platform.y - rules.coinLift,
+      width: rules.coinSize, height: rules.coinSize });
+    previousFinishPlatform = platform;
+  }
+  const finish = {
+    x: Math.max(arena.x + arena.width + finishRules.arenaExitGap,
+      previousFinishPlatform.x + previousFinishPlatform.width + finishRules.gap),
+    y: route.at(-1).y,
+    width: finishRules.platformWidth, height: rules.platformHeight,
+  };
+  const finishIndex = platforms.length;
+  finishRoute.push(finishIndex);
+  platforms.push(finish);
+
+  const chestIndices = [...new Set(rules.chestIndices.map(sharedIndex))];
+  const chestPlatforms = new Set(chestIndices);
+  const enemyIndices = pickFromZones(random, rules.enemyZones, new Set(chestPlatforms), sharedIndex);
+  const hazardIndices = pickFromZones(random, rules.hazardZones, new Set(chestPlatforms));
+  const risingIndices = pickFromZones(random, rules.risingZones, new Set(chestPlatforms));
   const hangingIndices = pickFromZones(random, rules.hangingZones);
-  const occupied = new Set([...skillPlatforms, ...enemyIndices, ...hazardIndices,
+  const occupied = new Set([...chestPlatforms, ...enemyIndices, ...hazardIndices,
     ...risingIndices, ...hangingIndices]);
+  const boostChosen = new Set();
   const boostIndices = Object.fromEntries(Object.entries(rules.boostZones).map(([kind, zone]) => {
     const available = Array.from({ length: rules.mainPlatforms - 2 }, (_, offset) =>
       offset + 1).filter((index) => sharedIndex(index) === index && !occupied.has(index));
     const preferred = available.filter((index) => index >= zone[0] && index <= zone[1]);
-    const candidates = preferred.length ? preferred : available.sort((left, right) =>
+    const fallback = available.length ? available : Array.from(
+      { length: rules.mainPlatforms - 2 }, (_, offset) => offset + 1)
+      .filter((index) => sharedIndex(index) === index && !chestPlatforms.has(index)
+        && !enemyIndices.includes(index) && !boostChosen.has(index));
+    const candidates = preferred.length ? preferred : fallback.sort((left, right) =>
       Math.abs(left - (zone[0] + zone[1]) / 2) - Math.abs(right - (zone[0] + zone[1]) / 2)).slice(0, 1);
     const index = candidates[between(random, 0, candidates.length - 1)];
     occupied.add(index);
+    boostChosen.add(index);
     return [kind, index];
   }));
 
@@ -237,26 +276,31 @@ export function generateLevel(template, requestedSeed) {
       width: rules.hanging.width, height: rules.hanging.height };
   });
 
-  const skillPickups = Object.fromEntries(Object.entries(rules.skillIndices).map(([kind, index]) => {
-    const platform = route[sharedIndex(index)];
-    return [kind, { x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
-      y: platform.y - rules.pickup.lift, width: rules.pickup.size, height: rules.pickup.size }];
-  }));
+  const chestPickups = chestIndices.map((index) => {
+    const platform = route[index];
+    return { x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
+      y: platform.y - rules.pickup.lift, width: rules.pickup.size, height: rules.pickup.size };
+  });
+  for (const [surface, zones] of Object.entries(rules.surfaceZones)) {
+    for (const zone of zones) {
+      const index = between(random, ...zone);
+      route[sharedIndex(index)].surface = surface;
+    }
+  }
   const boostPickups = Object.fromEntries(Object.entries(boostIndices).map(([kind, index]) => {
     const platform = route[index];
     return [kind, { x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
       y: platform.y - rules.pickup.lift, width: rules.pickup.size, height: rules.pickup.size }];
   }));
-  const last = arena;
   const goal = { ...template.goal,
-    x: last.x + last.width - template.goal.width - bossRules.goalInset,
-    y: last.y - template.goal.height, requiresBoss: true };
+    x: finish.x + finish.width - template.goal.width - finishRules.goalInset,
+    y: finish.y - template.goal.height, requiresBoss: true };
 
   return {
-    ...template, seed, platforms, letters, enemies, hazard, risingSpikes, hangingSpikes,
-    layout: { profileIndex, junctions, bossRoute, arenaIndex },
-    skillPickups, boostPickups, goal,
-    width: last.x + last.width + rules.endPadding,
+    ...template, seed, platforms, coins, enemies, hazard, risingSpikes, hangingSpikes,
+    layout: { profileIndex, junctions, bossRoute, arenaIndex, finishRoute, finishIndex },
+    chestPickups, boostPickups, goal,
+    width: finish.x + finish.width + rules.endPadding,
     top: Math.min(...platforms.map((platform) => platform.y)) - rules.topPadding,
     bottom: Math.max(...platforms.map((platform) => platform.y)) + rules.bottomPadding,
   };

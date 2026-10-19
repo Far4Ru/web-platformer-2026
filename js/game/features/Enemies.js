@@ -24,6 +24,23 @@ export class Enemies {
     return this.items.every((enemy) => !enemy.boss || !enemy.alive);
   }
 
+  addSkills(count) {
+    for (const enemy of this.items) if (enemy.alive) {
+      for (let index = 0; index < count; index++) enemy.addSkill();
+    }
+  }
+
+  changeDifficulty(skillDelta, extraCoins) {
+    this.coinBonus = (this.coinBonus ?? 0) + extraCoins;
+    for (const enemy of this.items) {
+      if (!enemy.alive) continue;
+      enemy.maxHealth = Math.max(1, enemy.maxHealth - 1);
+      enemy.health = Math.min(enemy.health, enemy.maxHealth);
+      if (skillDelta > 0) enemy.addSkill();
+      else enemy.removeSkill();
+    }
+  }
+
   update(dt, player) {
     this.items.forEach((enemy) => {
       enemy.update(dt);

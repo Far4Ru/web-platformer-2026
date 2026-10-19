@@ -1,5 +1,6 @@
 {
-  "storageKey": "star-mail-best",
+  "storageKey": "star-coin-best",
+  "music": { "src": "assets/music/background.mp3", "volume": 0.4 },
   "world": { "width": 960, "height": 540 },
   "maxFrameStep": 0.0333333333,
   "controls": {
@@ -40,7 +41,8 @@
       "face": "#ffe6ac",
       "coat": "#f47872",
       "eye": "#ffffff",
-      "shoes": "#274456"
+      "shoes": "#274456",
+      "frozenOverlay": "rgba(170, 225, 255, 0.45)"
     },
     "sprite": [
       { "x": 2, "y": 3, "width": 28, "height": 37, "color": "outline" },
@@ -71,7 +73,6 @@
     }
   },
   "healingSkill": {
-    "pickup": { "x": 1620, "y": 284, "width": 28, "height": 28 },
     "healAmount": 1,
     "interval": 15,
     "beamDuration": 0.8,
@@ -88,7 +89,6 @@
     }
   },
   "swordSkill": {
-    "pickup": { "x": 3490, "y": 694, "width": 28, "height": 28 },
     "interval": 10,
     "attackDuration": 0.45,
     "damage": 1,
@@ -125,12 +125,10 @@
     "jump": { "speed": 650, "gravity": 1350 }
   },
   "companionSkill": {
-    "pickup": { "x": 2200, "y": 214, "width": 28, "height": 28 },
     "delay": 0.32,
     "distance": 28
   },
   "fireballSkill": {
-    "pickup": { "x": 4100, "y": 594, "width": 28, "height": 28 },
     "interval": 20,
     "range": 580,
     "speed": 360,
@@ -139,7 +137,6 @@
     "projectile": { "size": 14, "life": 2.5 }
   },
   "iceSkill": {
-    "pickup": { "x": 5620, "y": -126, "width": 28, "height": 28 },
     "interval": 25,
     "range": 520,
     "speed": 245,
@@ -151,7 +148,6 @@
     "projectile": { "size": 24, "life": 2.5 }
   },
   "bowSkill": {
-    "pickup": { "x": 6815, "y": 54, "width": 28, "height": 28 },
     "interval": 5,
     "range": 650,
     "speed": 430,
@@ -164,18 +160,71 @@
     "stunDuration": 0.3,
     "projectile": { "width": 10, "height": 6, "life": 2.6 }
   },
-  "letterMagnet": {
+  "coinMagnet": {
     "radius": 90,
     "speed": 430,
     "collectRadius": 12,
     "minScale": 0.65,
     "shrinkSpeed": 0.85
   },
-  "letterDrops": {
+  "coinDrops": {
     "size": 13,
     "scatterSpeed": 45,
     "popSpeed": 180,
     "gravity": 700
+  },
+  "cards": {
+    "chestArt": { "body": "#83583d", "trim": "#f5bf68", "hellBody": "#85364b", "hellTrim": "#ff687d" },
+    "choiceCount": 3,
+    "confirmHoldSeconds": 2.5,
+    "openingDuration": 1.2,
+    "rewardBannerDuration": 2,
+    "hellChance": 0.22,
+    "rarityWeights": { "common": 55, "rare": 30, "epic": 12, "legendary": 3 },
+    "rarityColors": { "common": "#b4c8d1", "rare": "#7ac9ff", "epic": "#c99aff", "legendary": "#ffcf6b", "hell": "#ff6d78" },
+    "rarityLabels": { "common": "ОБЫЧНАЯ", "rare": "РЕДКАЯ", "epic": "ЭПИЧЕСКАЯ", "legendary": "ЛЕГЕНДАРНАЯ", "hell": "АДСКАЯ" },
+    "uiText": { "opening": "СУНДУК ОТКРЫТ", "openingHint": "Выберите награду",
+      "reward": "ПОЛУЧЕНА КАРТА", "choose": "ВЫБЕРИТЕ КАРТУ",
+      "transform": "СУНДУК ПРЕВРАЩАЕТСЯ В АДСКИЙ",
+      "hell": "АДСКАЯ КАРТА", "accept": "Удерживайте W / ↑ / Space или карту 2,5 секунды",
+      "chooseHint": "← → — выбор     удерживайте W / ↑ / Space 2,5 секунды",
+      "reroll": "Сменить карты",
+      "level": "Уровень" },
+    "entries": [
+      { "id": "health", "kind": "upgrade", "rarity": "common", "title": "Крепкое сердце", "description": "Макс. здоровье +1" },
+      { "id": "damage", "kind": "upgrade", "rarity": "rare", "title": "Острый удар", "description": "Урон +1" },
+      { "id": "speed", "kind": "upgrade", "rarity": "rare", "title": "Лёгкий шаг", "description": "Скорость ×1.5" },
+      { "id": "healing", "kind": "skill", "rarity": "common", "title": "Лечение", "description": "Автоматически лечит героя" },
+      { "id": "bow", "kind": "skill", "rarity": "common", "title": "Стрелы", "description": "Точность 15% / 40% / 100%" },
+      { "id": "sword", "kind": "skill", "rarity": "common", "title": "Меч", "description": "Короткий / обычный / двойной удар" },
+      { "id": "fireball", "kind": "skill", "rarity": "rare", "title": "Огненный шар", "description": "Один / три подряд / огненный круг" },
+      { "id": "ice", "kind": "skill", "rarity": "rare", "title": "Лёд", "description": "Осколок / катящийся шар / ледяной круг" },
+      { "id": "companion", "kind": "skill", "rarity": "epic", "title": "Компаньон", "description": "Союзник / умение I / умение II" },
+      { "id": "simplify", "kind": "world", "rarity": "rare", "title": "Упрощение", "description": "Враги: −1 HP и −1 умение; больше монет" },
+      { "id": "complicate", "kind": "world", "rarity": "epic", "title": "Усложнение", "description": "Враги: −1 HP и +1 умение" },
+      { "id": "reroll", "kind": "utility", "rarity": "rare", "title": "Новый расклад", "description": "+1 смена карт в следующих сундуках" },
+      { "id": "noBoss", "kind": "utility", "rarity": "legendary", "title": "Отмена босса", "description": "Босс исчезает; +15 монет" },
+      { "id": "blessing", "kind": "utility", "rarity": "legendary", "title": "Благословение", "description": "Адский сундук больше не появится" },
+      { "id": "fakeFlight", "kind": "fake", "rarity": "common", "title": "Полёт на секунду", "description": "На словах герой летает. Эффекта нет." },
+      { "id": "fakeLight", "kind": "fake", "rarity": "common", "title": "Скорость света", "description": "Предел скорости остаётся прежним." }
+    ],
+    "hellEntries": [
+      { "id": "wall", "title": "Стена преследования", "description": "Стена идёт от начала карты до финиша" },
+      { "id": "arrows", "title": "Дождь стрел", "description": "Сверху периодически падают стрелы" },
+      { "id": "holes", "title": "Провалы", "description": "В платформах случайно открываются дыры" },
+      { "id": "freeze", "title": "Ледяные цепи", "description": "Герой периодически замирает на секунду" },
+      { "id": "enemies", "title": "Гвардия ада", "description": "Враги получают умение и щит на 5 секунд" },
+      { "id": "spikes", "title": "Проклятые платформы", "description": "Платформы становятся шипами на 5 секунд" }
+    ],
+    "hell": { "wallSpeed": 75, "arrowInterval": 1.6, "arrowCount": 5, "arrowSpacing": 46,
+      "arrowSpeed": 520, "arrowSize": 12,
+      "holeInterval": 3.5, "holeDuration": 2, "holeWidth": 58,
+      "freezeInterval": 7, "freezeDuration": 1,
+      "shieldInterval": 8, "shieldDuration": 5,
+      "spikeInterval": 5, "spikeDuration": 5,
+      "shake": 3 },
+    "chestSize": 34,
+    "transformDuration": 1.5
   },
   "level": {
     "generation": {
@@ -241,9 +290,9 @@
       "backtrackEndpointRise": 30,
       "backtrackEndpointOffsetX": 100,
       "backtrackRewardOffsets": [8, 38],
-      "letterOffsetX": 22,
-      "letterLift": 38,
-      "letterSize": 24,
+      "coinOffsetX": 22,
+      "coinLift": 38,
+      "coinSize": 24,
       "enemyZones": [[5, 5], [8, 10], [12, 14], [16, 18], [20, 22], [24, 26], [28, 30], [33, 36], [38, 40]],
       "enemy": {
         "width": 30,
@@ -259,9 +308,11 @@
       "rising": { "width": 28, "height": 21, "edgeInset": 12, "periods": [2.4, 3.1, 3.8, 4.4, 3.5], "activeDuration": 1.05, "riseTime": 0.18, "fallTime": 0.18 },
       "hangingZones": [[12, 13], [24, 26], [32, 33], [36, 38]],
       "hanging": { "width": 40, "height": 27, "edgeInset": 15 },
-      "skillIndices": { "healing": 4, "sword": 7, "companion": 11, "fireball": 19, "ice": 27, "bow": 34 },
       "boostZones": { "heal": [2, 6], "speed": [15, 21], "damage": [30, 37] },
-      "bossRoute": { "steps": 3, "stepWidth": 170, "gap": 55, "deadEndDrop": [45, 65], "firstRise": 90, "rise": 65, "arenaWidth": 680, "arenaGap": 60, "arenaRise": 65, "bossWidth": 76, "bossHeight": 66, "bossHealth": 15, "bossSpeed": 72, "bossOffsetX": 230, "goalInset": 20 },
+      "chestIndices": [4, 7, 11, 19, 27, 34, 40],
+      "surfaceZones": { "swamp": [[3, 6], [18, 21], [35, 38]], "ice": [[11, 14], [26, 29]] },
+      "bossRoute": { "steps": 3, "stepWidth": 170, "gap": 55, "firstRise": 90, "rise": 65, "arenaWidth": 680, "arenaGap": 60, "arenaRise": 65, "bossWidth": 76, "bossHeight": 66, "bossHealth": 15, "bossSpeed": 72, "bossOffsetX": 230 },
+      "finishRoute": { "entryDrop": [45, 65], "steps": 5, "stepWidth": 170, "gap": 55, "platformWidth": 260, "arenaExitGap": 55, "goalInset": 20 },
       "pickup": { "size": 28, "lift": 46, "edgeInset": 15 },
       "goalEdgeInset": 12,
       "topPadding": 180,
@@ -327,7 +378,7 @@
       { "x": 7670, "y": -170, "width": 170, "height": 24 },
       { "x": 7860, "y": -260, "width": 175, "height": 24 }
     ],
-    "letters": [
+    "coins": [
       { "x": 268, "y": 343, "width": 24, "height": 24 },
       { "x": 443, "y": 263, "width": 24, "height": 24 },
       { "x": 613, "y": 183, "width": 24, "height": 24 },
@@ -413,6 +464,8 @@
     "hillPoints": [[0, 540], [0, 405], [160, 450], [305, 355], [480, 440], [700, 355], [960, 450], [960, 540]],
     "platformShadow": "#183b53",
     "platformTop": "#73d8c9",
+    "platformTopIce": "#b8f2ff",
+    "platformTopSwamp": "#879c65",
     "platformFace": "#376d78",
     "platformTopHeight": 8,
     "platformShadowOffset": { "x": 3, "y": 7 },
@@ -430,6 +483,7 @@
       "frozen": "#a9ddff",
       "boss": "#d16583",
       "bossHighlight": "#ffd6a0",
+      "shield": "#9cf0ff",
       "highlight": "#d7aaf2",
       "eye": "#ffffff",
       "pupil": "#253242"
@@ -447,6 +501,8 @@
       "halo": "#fff1ba",
       "mark": "#ffffff",
       "companion": "#87e6d8",
+      "companionHealthEmpty": "#3d2535",
+      "companionHealthFull": "#ef5964",
       "fireball": "#ff855e",
       "ice": "#a9ddff",
       "bow": "#e1bd8f",
@@ -467,13 +523,11 @@
       "speed": "#ffe178",
       "damage": "#ff9a64"
     },
-    "letterColor": "#ffe8a0",
-    "letterLine": "#ad793e",
-    "letterLineWidth": 2,
-    "letterBottomInset": 5,
-    "letterFold": [[1, 1], [12, 11], [23, 1]],
-    "letterBobSpeed": 3,
-    "letterBobAmount": 3,
+    "coinColor": "#ffdc73",
+    "coinEdge": "#ad793e",
+    "coinMark": "#fff3bd",
+    "coinBobSpeed": 3,
+    "coinBobAmount": 3,
     "goalPortal": {
       "font": "Alice, serif",
       "coreRadius": 20,
@@ -503,7 +557,8 @@
         { "fraction": 0.6, "color": "marker60" },
         { "fraction": 0.8, "color": "marker80" }
       ]
-    }
+    },
+    "hell": { "wall": "#ff526f", "behindWall": "#000000", "arrow": "#ffb2bd", "spike": "#f2689a" }
   },
   "ui": {
     "font": "Alice, serif",
@@ -555,12 +610,17 @@
     },
     "icons": {
       "pause": { "x": 830, "y": 18, "width": 52, "height": 52 },
+      "sound": { "x": 768, "y": 18, "width": 52, "height": 52 },
       "restart": { "x": 892, "y": 18, "width": 52, "height": 52 }
     },
     "overlay": {
       "panel": { "x": 250, "y": 130, "width": 460, "height": 280 },
       "button": { "x": 350, "y": 332, "width": 260, "height": 54 }
     },
+    "cards": { "x": 104, "y": 130, "width": 232, "height": 252, "gap": 28,
+      "reroll": { "x": 370, "y": 410, "width": 220, "height": 48 },
+      "colors": { "veil": "rgba(8, 15, 30, 0.88)", "panel": "#102940", "text": "#ffffff",
+        "description": "#e1edf4", "reroll": "#327987", "progressTrack": "#29465a" } },
     "touch": {
       "left": { "x": 22, "y": 426, "width": 128, "height": 78 },
       "right": { "x": 162, "y": 426, "width": 128, "height": 78 },

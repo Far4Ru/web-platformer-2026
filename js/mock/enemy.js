@@ -26,14 +26,19 @@ export function drawEnemy(ctx, enemy, art) {
     ctx.lineWidth = 3;
     ctx.strokeRect(x - 3, y - 3, width + 6, height + 6);
   }
+  if (enemy.shieldFor > 0) {
+    ctx.strokeStyle = art.shield;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x - 5, y - 5, width + 10, height + 10);
+  }
 }
 
 export function drawEnemyHealthBar(ctx, enemy, art) {
   const { segmentWidth, segmentGap, height, offsetY } = art;
-  const totalWidth = enemy.settings.maxHealth * segmentWidth + (enemy.settings.maxHealth - 1) * segmentGap;
+  const totalWidth = enemy.maxHealth * segmentWidth + (enemy.maxHealth - 1) * segmentGap;
   const x = enemy.x + (enemy.width - totalWidth) / 2;
   const y = enemy.y - offsetY;
-  for (let index = 0; index < enemy.settings.maxHealth; index++) {
+  for (let index = 0; index < enemy.maxHealth; index++) {
     const segmentX = x + index * (segmentWidth + segmentGap);
     ctx.fillStyle = art.border;
     ctx.fillRect(segmentX - 1, y - 1, segmentWidth + 2, height + 2);

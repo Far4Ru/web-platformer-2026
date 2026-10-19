@@ -7,16 +7,16 @@ export class ReachGoal {
     this.requiresBoss = !!bounds.requiresBoss;
   }
 
-  progress(collectLetters) {
-    return collectLetters.count / collectLetters.items.length;
+  progress(collectCoins) {
+    return Math.min(1, collectCoins.count / collectCoins.total);
   }
 
-  isReady(collectLetters, bossDefeated = true) {
-    return this.progress(collectLetters) >= this.openFraction
+  isReady(collectCoins, bossDefeated = true) {
+    return this.progress(collectCoins) >= this.openFraction
       && (!this.requiresBoss || bossDefeated);
   }
 
-  reachedBy(player, collectLetters, bossDefeated = true) {
-    return this.isReady(collectLetters, bossDefeated) && this.goal.hits(player);
+  reachedBy(player, collectCoins, bossDefeated = true) {
+    return this.isReady(collectCoins, bossDefeated) && this.goal.hits(player);
   }
 }

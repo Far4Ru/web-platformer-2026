@@ -26,12 +26,14 @@ export class BowSkill extends ProjectileSkill {
     }
     if (!trajectory || trajectory.error > this.settings.speedTolerance) return null;
     const { projectile } = this.settings;
-    return new Projectile({
+    const shot = new Projectile({
       x: originX - projectile.width / 2, y: originY - projectile.height / 2,
       width: projectile.width, height: projectile.height,
       vx: trajectory.vx, vy: trajectory.vy, gravity: this.settings.gravity,
       life: projectile.life, kind: 'arrow', damage: this.settings.damage,
       stun: this.settings.stunDuration,
     });
+    shot.hitChance = [0, 0.15, 0.4, 1][this.level] ?? 1;
+    return shot;
   }
 }

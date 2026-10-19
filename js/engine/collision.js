@@ -17,6 +17,7 @@ export function moveAndCollide(body, platforms, dt) {
   const previousBottom = body.y + body.height;
   body.y += body.vy * dt;
   body.grounded = false;
+  body.groundPlatform = null;
   let landing = null;
   let ceiling = null;
   for (const platform of platforms) {
@@ -32,6 +33,7 @@ export function moveAndCollide(body, platforms, dt) {
     body.y = landing.y - body.height;
     body.vy = 0;
     body.grounded = true;
+    body.groundPlatform = landing;
   } else if (ceiling) {
     body.y = ceiling.y + ceiling.height;
     body.vy = 0;

@@ -54,20 +54,20 @@ test('generated routes and required objects obey movement limits', () => {
     const junctions = level.layout.junctions;
     const rewardJunctions = junctions.filter((junction) => junction.pattern !== 'fork');
     assert.equal(rewardJunctions.length, 2);
-    assert.equal(level.letters.length, route.length - 1 + junctions.length
+    assert.equal(level.coins.length, route.length - 1 + junctions.length
       + rewardJunctions.length * rules.backtrackRewardOffsets.length
-      + rules.bossRoute.steps);
+      + rules.bossRoute.steps + rules.finishRoute.steps);
     assert.equal(level.enemies.length, rules.enemyZones.length + 1);
     assert.equal(level.hazard.length, rules.hazardZones.length);
     assert.equal(level.risingSpikes.length, rules.risingZones.length);
     assert.equal(level.hangingSpikes.length, rules.hangingZones.length);
-    const totalLetters = level.letters.length + level.enemies.reduce((total, enemy) =>
-      total + enemy.maxHealth, 0);
-    const onePathLetters = route.length - 1 - junctions.length + rules.bossRoute.steps;
-    const reachableAfterSword = onePathLetters + level.enemies
-      .filter((enemy) => enemy.platformIndex > rules.skillIndices.sword)
-      .reduce((total, enemy) => total + enemy.maxHealth, 0);
-    assert(reachableAfterSword >= Math.ceil(totalLetters * level.goal.openFraction));
+    const totalCoins = level.coins.length + level.enemies.reduce((total, enemy) =>
+      total + enemy.maxHealth + (enemy.boss ? 5 : 1), 0);
+    assert(totalCoins === 102 || totalCoins === 103);
+    assert.equal(route.filter((platform) => platform.surface === 'swamp').length,
+      rules.surfaceZones.swamp.length);
+    assert.equal(route.filter((platform) => platform.surface === 'ice').length,
+      rules.surfaceZones.ice.length);
 
     for (let index = 1; index < route.length; index++) {
       const previous = route[index - 1];
@@ -79,8 +79,11 @@ test('generated routes and required objects obey movement limits', () => {
         `seed ${seed}: height after platform ${index - 1}`);
     }
 
-    for (const [kind, pickup] of Object.entries(level.skillPickups)) {
-      const platform = route[sharedIndex(rules.skillIndices[kind], junctions)];
+    assert.equal(level.chestPickups.length,
+      new Set(rules.chestIndices.map((index) => sharedIndex(index, junctions))).size);
+    for (const [index, pickup] of level.chestPickups.entries()) {
+      const platform = route[[...new Set(rules.chestIndices.map((item) =>
+        sharedIndex(item, junctions)))][index]];
       assert(pickup.x >= platform.x && pickup.x + pickup.width <= platform.x + platform.width);
       assert(pickup.y + pickup.height < platform.y);
     }
@@ -88,7 +91,7 @@ test('generated routes and required objects obey movement limits', () => {
       const platform = level.platforms[enemy.platformIndex];
       assert(enemy.x >= platform.x && enemy.x + enemy.width <= platform.x + platform.width);
       if (!enemy.boss) assert.equal(sharedIndex(enemy.platformIndex, junctions), enemy.platformIndex);
-      assert(!Object.values(level.skillPickups).some((pickup) =>
+      assert(!level.chestPickups.some((pickup) =>
         pickup.x >= platform.x && pickup.x < platform.x + platform.width));
     }
     assert.equal(new Set(level.enemies.map((enemy) => enemy.platformIndex)).size,
@@ -118,14 +121,14 @@ test('generated routes and required objects obey movement limits', () => {
       assert(upper[2].x > step.x && step.x > highStep.x && highStep.x > endpoint.x);
       assert.equal(endpoint.fake, junction.pattern === 'fork');
       if (!endpoint.fake) {
-        assert.equal(level.letters.filter((letter) =>
-          letter.x >= endpoint.x && letter.x + letter.width <= endpoint.x + endpoint.width
-          && letter.y + letter.height < endpoint.y).length,
+        assert.equal(level.coins.filter((coin) =>
+          coin.x >= endpoint.x && coin.x + coin.width <= endpoint.x + endpoint.width
+          && coin.y + coin.height < endpoint.y).length,
         rules.backtrackRewardOffsets.length);
       }
     }
     assert.equal(level.platforms.length, rules.mainPlatforms + junctions.length * 6
-      + rules.bossRoute.steps + 1);
+      + rules.bossRoute.steps + 1 + rules.finishRoute.steps + 1);
     assert.equal(level.layout.bossRoute.length, rules.bossRoute.steps + 1);
     const bossEntry = level.platforms[level.layout.bossRoute[0]];
     assert.equal(bossEntry.x, route.at(-1).x);
@@ -136,9 +139,19 @@ test('generated routes and required objects obey movement limits', () => {
     assert.equal(boss.maxHealth, 15);
     assert.equal(boss.boss, true);
     assert.equal(arena.width, rules.bossRoute.arenaWidth);
+    assert.equal(level.layout.finishRoute.length, rules.finishRoute.steps + 1);
+    const finishEntry = level.platforms[level.layout.finishRoute[0]];
+    const finish = level.platforms[level.layout.finishIndex];
+    assert.equal(finishEntry.x, route.at(-1).x + route.at(-1).width + rules.finishRoute.gap);
+    assert(level.layout.finishRoute.every((index) =>
+      level.platforms[index].y === route.at(-1).y));
+    assert(finish.x >= arena.x + arena.width + rules.finishRoute.arenaExitGap);
+    assert.equal(finish.width, rules.finishRoute.platformWidth);
+    assert.notEqual(level.layout.finishIndex, level.layout.arenaIndex);
     assert.equal(level.goal.requiresBoss, true);
-    assert.equal(level.goal.y + level.goal.height, arena.y);
-    assert(level.goal.x >= arena.x && level.goal.x + level.goal.width <= arena.x + arena.width);
+    assert.equal(level.goal.y + level.goal.height, finish.y);
+    assert(level.goal.x >= finish.x && level.goal.x + level.goal.width <= finish.x + finish.width);
+    assert.equal(level.width, finish.x + finish.width + rules.endPadding);
   }
 });
 

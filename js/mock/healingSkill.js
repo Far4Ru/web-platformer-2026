@@ -1,24 +1,3 @@
-export function drawHealingPickup(ctx, pickup, art, time) {
-  if (pickup.collected) return;
-  const x = pickup.x + pickup.width / 2;
-  const y = pickup.y + pickup.height / 2 + Math.sin(time * art.bobSpeed) * art.bobAmount;
-  ctx.save();
-  ctx.globalAlpha = 0.45;
-  ctx.fillStyle = art.halo;
-  ctx.beginPath();
-  ctx.arc(x, y, pickup.width / 2 + 5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = art.body;
-  ctx.beginPath();
-  ctx.arc(x, y, pickup.width / 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = art.cross;
-  ctx.fillRect(x - 2, y - 8, 4, 16);
-  ctx.fillRect(x - 8, y - 2, 16, 4);
-  ctx.restore();
-}
-
 export function drawHealingBeam(ctx, player, camera, skill) {
   if (skill.beamTime <= 0) return;
   const { art, beamDuration } = skill.settings;

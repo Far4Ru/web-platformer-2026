@@ -1,10 +1,12 @@
 export class PlayerHealth {
   constructor(settings) {
-    this.settings = settings;
+    this.settings = { ...settings };
+    this.baseMax = settings.max;
     this.reset();
   }
 
   reset() {
+    this.settings.max = this.baseMax;
     this.value = this.settings.max;
     this.displayValue = this.value;
     this.invulnerableFor = 0;
@@ -27,6 +29,11 @@ export class PlayerHealth {
     this.value = Math.min(this.settings.max, this.value + amount);
     this.displayValue = Math.max(this.displayValue, this.value);
     return this.value > previous;
+  }
+
+  increaseMax(amount) {
+    this.settings.max += amount;
+    this.heal(amount);
   }
 
   get draining() {

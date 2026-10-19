@@ -2,19 +2,25 @@ export class Input {
   constructor(keyActions) {
     this.keyActions = keyActions;
     this.keyboard = new Set();
+    this.ignoredKeys = new Set();
     this.pointers = new Map();
     this.jumpQueued = false;
     window.addEventListener('keydown', (event) => {
       const action = this.keyActions[event.code];
       if (!action) return;
       event.preventDefault();
+      if (this.ignoredKeys.has(event.code)) return;
       if (action === 'jump' && !this.keyboard.has(event.code)) this.jumpQueued = true;
       this.keyboard.add(event.code);
     });
     window.addEventListener('keyup', (event) => {
       if (this.keyActions[event.code]) this.keyboard.delete(event.code);
+      this.ignoredKeys.delete(event.code);
     });
-    window.addEventListener('blur', () => this.clear());
+    window.addEventListener('blur', () => {
+      this.clear();
+      this.ignoredKeys.clear();
+    });
   }
 
   pressPointer(id, action) {
@@ -39,5 +45,10 @@ export class Input {
     this.keyboard.clear();
     this.pointers.clear();
     this.jumpQueued = false;
+  }
+
+  suppressUntilRelease(codes) {
+    codes.forEach((code) => this.ignoredKeys.add(code));
+    this.clear();
   }
 }

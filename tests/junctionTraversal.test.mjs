@@ -88,5 +88,14 @@ test('both roads and backward objectives are reachable with solid ceilings', () 
       assert(canReach(bossPath[index - 1], bossPath[index], solid, true),
         `seed ${seed}: boss route hop ${index}`);
     }
+    const finishPath = [mainEnd,
+      ...level.layout.finishRoute.map((index) => level.platforms[index])];
+    for (let index = 1; index < finishPath.length; index++) {
+      assert(canReach(finishPath[index - 1], finishPath[index], solid, true)
+        || canReach(finishPath[index - 1], finishPath[index], solid, false),
+      `seed ${seed}: finish route hop ${index}`);
+    }
+    assert(canReach(bossPath.at(-1), finishPath.at(-1), solid, false),
+      `seed ${seed}: boss arena has no exit to the finish platform`);
   }
 });

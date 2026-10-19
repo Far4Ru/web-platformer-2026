@@ -83,7 +83,7 @@ test('generated boosts occupy distinct safe platforms', () => {
           pickup.y + pickup.height < platform.y && pickup.y >= platform.y - 60);
       assert(index >= 0, `seed ${seed}: boost is off platform`);
       assert(!level.enemies.some((enemy) => enemy.platformIndex === index));
-      assert(!Object.values(level.skillPickups).some((skill) => skill.x === pickup.x));
+      assert(!level.chestPickups.some((chest) => chest.x === pickup.x));
       return index;
     });
     assert.equal(new Set(boostPlatforms).size, boostPlatforms.length);

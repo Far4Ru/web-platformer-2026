@@ -1,6 +1,6 @@
-import { Letter } from './Letter.js';
+import { Coin } from './Coin.js';
 
-export class DroppedLetter extends Letter {
+export class DroppedCoin extends Coin {
   constructor(sourceIndex, index, count, settings) {
     super({ x: 0, y: 0, width: settings.size, height: settings.size });
     this.sourceIndex = sourceIndex;

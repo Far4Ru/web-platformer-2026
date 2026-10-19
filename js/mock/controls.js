@@ -21,6 +21,28 @@ export function drawIcon(ctx, rect, icon, colors, resumed = false, disabled = fa
     ctx.lineTo(cx + 12, cy);
     ctx.lineTo(cx - 7, cy + 13);
     ctx.fill();
+  } else if (icon === 'sound') {
+    ctx.beginPath();
+    ctx.moveTo(cx - 13, cy - 6);
+    ctx.lineTo(cx - 7, cy - 6);
+    ctx.lineTo(cx + 1, cy - 12);
+    ctx.lineTo(cx + 1, cy + 12);
+    ctx.lineTo(cx - 7, cy + 6);
+    ctx.lineTo(cx - 13, cy + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = colors.text;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    if (resumed) {
+      ctx.moveTo(cx + 7, cy - 8);
+      ctx.lineTo(cx + 16, cy + 8);
+      ctx.moveTo(cx + 16, cy - 8);
+      ctx.lineTo(cx + 7, cy + 8);
+    } else {
+      ctx.arc(cx + 2, cy, 12, -0.8, 0.8);
+    }
+    ctx.stroke();
   } else {
     ctx.strokeStyle = colors.text;
     ctx.lineWidth = 4;

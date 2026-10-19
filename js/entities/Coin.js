@@ -1,6 +1,6 @@
 import { Entity } from './Entity.js';
 
-export class Letter extends Entity {
+export class Coin extends Entity {
   constructor(bounds) {
     super(bounds);
     this.spawn = { x: bounds.x, y: bounds.y };

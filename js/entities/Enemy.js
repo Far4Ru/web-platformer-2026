@@ -21,7 +21,8 @@ export class Enemy extends Entity {
     this.x = this.settings.x;
     this.y = this.platform.y - this.height;
     this.direction = this.settings.direction;
-    this.health = this.settings.maxHealth;
+    this.maxHealth = this.settings.maxHealth;
+    this.health = this.maxHealth;
     this.dropped = false;
     this.hurtTime = 0;
     this.boss = !!this.settings.boss;
@@ -42,6 +43,7 @@ export class Enemy extends Entity {
     this.frozenFor = 0;
     this.jumpVelocity = 0;
     this.dashFor = 0;
+    this.shieldFor = 0;
   }
 
   get alive() {
@@ -50,6 +52,7 @@ export class Enemy extends Entity {
 
   update(dt) {
     if (!this.alive) return;
+    this.shieldFor = Math.max(0, this.shieldFor - dt);
     this.frozenFor = Math.max(0, this.frozenFor - dt);
     if (this.frozenFor > 0) return;
     if (this.jumpVelocity !== 0 || this.y < this.platform.y - this.height) {
@@ -92,9 +95,23 @@ export class Enemy extends Entity {
   }
 
   takeDamage(amount, stunDuration) {
-    if (!this.alive) return;
+    if (!this.alive || this.shieldFor > 0) return false;
     this.health = Math.max(0, this.health - amount);
     this.hurtTime = this.alive ? stunDuration * (this.abilities.stunMultiplier ?? 1) : 0;
+    return true;
+  }
+
+  addSkill() {
+    const available = this.abilities.kinds.filter((kind) => !this.skills.includes(kind));
+    if (!available.length) return;
+    const skill = available[Math.floor(Math.random() * available.length)];
+    this.skills.push(skill);
+    this.abilityTimers[skill] = this.abilities.interval;
+  }
+
+  removeSkill() {
+    const skill = this.skills.pop();
+    if (skill) delete this.abilityTimers[skill];
   }
 
   freeze(duration) {

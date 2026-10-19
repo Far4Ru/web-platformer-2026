@@ -45,14 +45,14 @@ test('boss has 15 HP, multiple random skills, amplified attacks, and gates the p
   assert(enemies.spikes.every((spike) => spike.maxHeight > settings.enemyAbilities.spikes.height));
 
   const goal = new ReachGoal(level.goal);
-  const letters = { count: 80, items: Array(80) };
+  const coins = { count: 80, total: 80 };
   const portalPlayer = { x: level.goal.x, y: level.goal.y,
     width: level.goal.width, height: level.goal.height };
   assert.equal(enemies.bossDefeated, false);
-  assert.equal(goal.reachedBy(portalPlayer, letters, enemies.bossDefeated), false);
+  assert.equal(goal.reachedBy(portalPlayer, coins, enemies.bossDefeated), false);
   boss.takeDamage(14, 0);
   assert.equal(boss.health, 1);
   boss.takeDamage(1, 0);
   assert.equal(enemies.bossDefeated, true);
-  assert.equal(goal.reachedBy(portalPlayer, letters, enemies.bossDefeated), true);
+  assert.equal(goal.reachedBy(portalPlayer, coins, enemies.bossDefeated), true);
 });

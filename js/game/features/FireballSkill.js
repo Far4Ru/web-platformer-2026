@@ -2,6 +2,21 @@ import { Projectile } from '../../entities/Projectile.js';
 import { ProjectileSkill } from './ProjectileSkill.js';
 
 export class FireballSkill extends ProjectileSkill {
+  createShots(player, enemies) {
+    const count = this.level === 1 ? 1 : this.level === 2 ? 3 : 6;
+    return Array.from({ length: count }, (_, index) => {
+      const shot = this.createShot(player, enemies);
+      if (this.level === 2) {
+        shot.delay = index * 0.18;
+        shot.anchor = player;
+      } else if (this.level === 3) {
+        shot.orbit = { anchor: player, angle: index * Math.PI * 2 / count,
+          radius: 43, remaining: index + 1, speed: 2.5 };
+      }
+      return shot;
+    });
+  }
+
   createShot(player, enemies) {
     const centerX = player.x + player.width / 2;
     const centerY = player.y + player.height / 2;

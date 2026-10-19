@@ -14,5 +14,6 @@ export class Player extends Entity {
     this.vy = 0;
     this.grounded = true;
     this.facing = 1;
+    this.frozenFor = 0;
   }
 }

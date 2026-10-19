@@ -13,8 +13,8 @@ export class WinLose {
     return true;
   }
 
-  checkWin(player, reachGoal, collectLetters, bossDefeated = true) {
-    if (this.state || !reachGoal.reachedBy(player, collectLetters, bossDefeated)) return false;
+  checkWin(player, reachGoal, collectCoins, bossDefeated = true) {
+    if (this.state || !reachGoal.reachedBy(player, collectCoins, bossDefeated)) return false;
     this.state = 'won';
     return true;
   }

@@ -1,21 +1,20 @@
-import { SkillPickup } from '../../entities/SkillPickup.js';
-
 export class SwordSkill {
   constructor(settings) {
     this.settings = settings;
-    this.pickup = new SkillPickup(settings.pickup);
     this.reset();
   }
 
   reset() {
-    this.pickup.reset();
+    this.level = 0;
     this.cooldown = 0;
     this.attackTime = 0;
     this.direction = 1;
+    this.secondStrike = 0;
   }
 
   activate(player, enemies, damageMultiplier = 1) {
-    const { range, verticalRange } = this.settings;
+    const { verticalRange } = this.settings;
+    const range = this.settings.range * (this.level === 1 ? 0.6 : 1);
     const centerX = player.x + player.width / 2;
     const centerY = player.y + player.height / 2;
     const nearby = enemies.items.filter((enemy) => {
@@ -38,13 +37,19 @@ export class SwordSkill {
     }
     this.cooldown = this.settings.interval;
     this.attackTime = this.settings.attackDuration;
+    if (this.level === 3 && !this.performingSecondStrike) this.secondStrike = 0.22;
   }
 
   update(dt, player, enemies, damageMultiplier = 1) {
     this.attackTime = Math.max(0, this.attackTime - dt);
-    if (!this.pickup.collected) {
-      if (this.pickup.tryCollect(player)) this.activate(player, enemies, damageMultiplier);
-      return;
+    if (this.level === 0) return;
+    if (this.secondStrike > 0) {
+      this.secondStrike -= dt;
+      if (this.secondStrike <= 0) {
+        this.performingSecondStrike = true;
+        this.activate(player, enemies, damageMultiplier);
+        this.performingSecondStrike = false;
+      }
     }
     this.cooldown = Math.max(0, this.cooldown - dt);
     if (this.cooldown === 0) this.activate(player, enemies, damageMultiplier);
