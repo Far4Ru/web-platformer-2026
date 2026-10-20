@@ -28,18 +28,14 @@ export function drawEarth(ctx, platforms, images, scene, camera, viewport) {
       ctx.clip();
       ctx.globalAlpha = scene.earthOpacity;
       const surface = surfaceIndex(platform);
-      const tile = surface === 1 ? 256 : surface === 2 ? 128 : scene.earthTileSize;
+      const tile = surface === 1 || surface === 2 ? 256 : scene.earthTileSize;
       const firstX = Math.floor(Math.max(left, piece.x) / tile) * tile;
       const firstY = Math.floor(Math.max(camera.y + viewport.top, earthY) / tile) * tile;
       const image = surface === 1 ? images.iceEarth
-        : surface === 2 ? images.platformBases[2] : images.earth;
+        : surface === 2 ? images.swampEarth : images.earth;
       for (let y = firstY; y < bottom; y += tile) {
         for (let x = firstX; x < Math.min(right, piece.x + piece.width); x += tile) {
-          if (surface === 2) {
-            const crop = Math.min(image.height * 0.48, image.width * 0.3);
-            ctx.drawImage(image, image.width * 0.35, image.height * 0.43,
-              crop, crop, x, y, tile, tile);
-          } else ctx.drawImage(image, x, y, tile, tile);
+          ctx.drawImage(image, x, y, tile, tile);
         }
       }
       ctx.restore();

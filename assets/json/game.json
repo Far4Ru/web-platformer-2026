@@ -282,6 +282,7 @@
     "temple": "assets/images/temple.png",
     "foliage": "assets/images/foliage-base.png",
     "earth": "assets/images/earth.png",
+    "swampEarth": "assets/images/swamp-earth.webp",
     "iceEarth": "assets/images/ice-earth.png",
     "grassWind": "assets/sprites/decor/grass-wind-v3.png",
     "vineWind": "assets/sprites/decor/vine-wind-v2.png",
