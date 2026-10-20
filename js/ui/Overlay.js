@@ -1,4 +1,4 @@
-import { drawOverlayButton, drawOverlayFrame } from '../render/overlay.js';
+import { drawOverlayButton, drawOverlayFrame, drawTempleFrame } from '../render/overlay.js';
 import { drawSheetFrame } from '../render/sprites.js';
 
 export class Overlay {
@@ -25,7 +25,6 @@ export class Overlay {
       state === 'won' || state === 'lost');
     if (state === 'won' || state === 'lost') {
       const isWin = state === 'won';
-      const falling = game?.lossReason === 'fall';
       if (isWin) {
         const hero = this.images.victoryHero[Math.floor(time * 1.8) % 3];
         ctx.save();
@@ -37,47 +36,53 @@ export class Overlay {
         ctx.restore();
         drawVictoryParticles(ctx, this.images, time, 590, 285);
       } else {
-        const source = falling ? this.images.explorerActions : this.images.explorer;
-        const frame = falling ? 2 : Math.floor(time * 8) % 4 === 3
-          ? 4 : 1 + Math.floor(time * 9) % 2;
-        const travel = falling ? Math.min(19, time % 1.2 * 16)
-          : Math.sin(time * 5) * 14;
-        drawSheetFrame(ctx, source, frame, 6,
-          300 + travel, 152 + Math.sin(time * 15) * 2 + (falling ? travel : 0),
-          155, 190);
-      }
-      if (!isWin && !falling) {
-        const obstacle = game?.lossReason === 'spikes'
-          ? this.images.spikeVariants[0] : game?.lossReason === 'wall'
-            ? this.images.effects[2][2] : this.images.guardian;
-        if (game?.lossReason === 'enemy') drawSheetFrame(ctx, obstacle,
-          Math.floor(time * 5) % 3, 3, 455, 235, 65, 80);
-        else ctx.drawImage(obstacle, 455, 260, 66, 50);
+        const sceneIndex = { fall: 0, spikes: 1, enemy: 2, wall: 3 }[game?.lossReason] ?? 2;
+        const scene = this.images.defeatScenes[sceneIndex];
+        const drift = Math.sin(time * 0.8) * 9;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(210, 125, 540, 255);
+        ctx.clip();
+        ctx.drawImage(scene, 18 + drift, 5, scene.width - 36, scene.height - 10,
+          210, 125, 540, 255);
+        ctx.restore();
+        drawTempleFrame(ctx, this.images.templePlaqueOpen, {
+          x: panel.x - 130, y: 25, width: panel.width + 260, height: 445,
+        });
       }
       const titleImage = this.images[isWin ? 'victoryTitle' : 'defeatTitle'];
-      const titleWidth = isWin ? 280 : 300;
+      const titleWidth = isWin ? 280 : 335;
+      const titleHeight = isWin ? 56 : 86;
+      const titleX = isWin ? 600 : 480;
+      const titleY = isWin ? 209 : 190;
       const pulse = isWin ? 1 + Math.sin(time * 5) * 0.06 : 1;
       ctx.save();
-      ctx.translate(600, 209);
+      ctx.translate(titleX, titleY);
       ctx.scale(pulse, pulse);
       ctx.shadowColor = isWin ? '#ffd44c' : '#a25c32';
       ctx.shadowBlur = isWin ? 18 : 8;
-      ctx.drawImage(titleImage, -titleWidth / 2, -28, titleWidth, 56);
+      ctx.drawImage(titleImage, -titleWidth / 2, -titleHeight / 2,
+        titleWidth, titleHeight);
       ctx.restore();
-      ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const count = isWin ? Math.min(game?.collectCoins.count ?? 0,
         Math.floor((game?.resultTime ?? 0) * 38)) : game?.collectCoins.count ?? 0;
-      drawSheetFrame(ctx, this.images.coinAnimation, Math.floor(time * 9) % 4, 4,
-        520, 264, 43, 43);
       ctx.font = `bold 46px ${font}`;
+      const coinSize = 43;
+      const countWidth = ctx.measureText(String(count)).width;
+      const centerX = isWin ? 600 : 480;
+      const centerY = isWin ? 287 : 304;
+      const groupX = centerX - (coinSize + 9 + countWidth) / 2;
+      drawSheetFrame(ctx, this.images.coinAnimation, Math.floor(time * 9) % 4, 4,
+        groupX, centerY - coinSize / 2, coinSize, coinSize);
+      ctx.textAlign = 'left';
       ctx.fillStyle = '#fff2a5';
       ctx.strokeStyle = '#4a2a0d';
       ctx.lineWidth = 5;
       ctx.shadowColor = '#e6a525';
       ctx.shadowBlur = isWin ? 15 : 0;
-      ctx.strokeText(String(count), 610, 287, 160);
-      ctx.fillText(String(count), 610, 287, 160);
+      ctx.strokeText(String(count), groupX + coinSize + 9, centerY);
+      ctx.fillText(String(count), groupX + coinSize + 9, centerY);
       ctx.shadowBlur = 0;
       if (isWin && game?.newRecord) {
         ctx.drawImage(this.images.recordBadge,
@@ -86,6 +91,7 @@ export class Overlay {
       drawOverlayButton(ctx, button, colors.button, this.images);
       ctx.fillStyle = '#ffe9ad';
       ctx.font = `23px ${font}`;
+      ctx.textAlign = 'center';
       ctx.fillText(copy.button, button.x + button.width / 2, button.y + button.height / 2 + 1);
       ctx.restore();
       return;

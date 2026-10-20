@@ -97,8 +97,10 @@ export function drawCard(ctx, card, rect, color, font, palette, rarityLabel,
       rect.width - 62));
   ctx.fillStyle = '#3c2916';
   ctx.font = `bold 12px ${font}`;
-  const typeLabels = { skill: 'СПОСОБНОСТЬ', upgrade: 'УСИЛЕНИЕ',
-    world: 'МИР', utility: 'АРТЕФАКТ', fake: 'ОБМАН' };
+  const typeLabels = {
+    skill: 'СПОСОБНОСТЬ', upgrade: 'УСИЛЕНИЕ',
+    world: 'МИР', utility: 'АРТЕФАКТ', fake: 'СПОСОБНОСТЬ'
+  };
   const typeLabel = card.rarity === 'hell' ? 'ПРОКЛЯТИЕ'
     : typeLabels[card.kind] ?? 'АРТЕФАКТ';
   ctx.fillText(typeLabel, rect.x + rect.width / 2,
@@ -114,8 +116,10 @@ export function drawCard(ctx, card, rect, color, font, palette, rarityLabel,
 }
 export function drawCardIcon(ctx, id, x, y, color, font, images) {
   const pickups = { health: 0, speed: 1, damage: 2 };
-  const skills = { sword: [0, 0], fireball: [1, 0], ice: [2, 0],
-    bow: [0, 1], healing: [2, 1] };
+  const skills = {
+    sword: [0, 0], fireball: [1, 0], ice: [2, 0],
+    bow: [0, 1], healing: [2, 1]
+  };
   const relics = {
     simplify: images.objects?.[2]?.[1],
     complicate: images.objects?.[0]?.[2],

@@ -17,8 +17,8 @@ export class Counter {
         height * this.images.coinCounter.width / this.images.coinCounter.height);
       ctx.drawImage(this.images.coinCounter, x, y, frameWidth, height);
       drawSheetFrame(ctx, this.images.coinAnimation, coinFrame, 4,
-        x + 13, y + 10, 34, 34);
-      ctx.translate(x + frameWidth * 0.7, y + height / 2 + 1);
+        x + 12, y + 8, 35, 35);
+      ctx.translate(x + frameWidth * 0.66, y + height / 2 - 3);
       ctx.textAlign = 'center';
       ctx.fillStyle = '#34230f';
       ctx.strokeStyle = '#ffe9ab';

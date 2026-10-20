@@ -17,7 +17,7 @@ test('collected coins reach the counter before its number rises', () => {
   assert.equal(hud.flights[0].x, 212);
   hud.update(0.2, 1);
   assert.equal(hud.displayed, 0);
-  hud.update(0.65, 1);
+  hud.update(hud.flights[0].duration - 0.2, 1);
   assert.equal(hud.displayed, 1);
   assert.equal(hud.flights.length, 0);
   assert(hud.pulse > 0);

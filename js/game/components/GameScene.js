@@ -155,8 +155,10 @@ export class GameScene {
 
     if (state !== 'playing') overlay.render(ctx, state, viewport, time, game);
     hud.render(ctx, game.collectCoins.count, game.bestScore.value, time);
-    game.skillBar.render(ctx, game);
-    game.boostBar.render(ctx, game.boosts, game.engine.images.effects);
+    if (state === 'playing') {
+      game.skillBar.render(ctx, game);
+      game.boostBar.render(ctx, game.boosts, game.engine.images.effects);
+    }
     controls.render(ctx, state, game.music.muted);
     game.cardOverlay.render(ctx, game.chests, game, time, viewport);
   }
