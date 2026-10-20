@@ -14,13 +14,13 @@ export class Overlay {
       point.y >= rect.y && point.y <= rect.y + rect.height;
   }
 
-  render(ctx, state) {
+  render(ctx, state, viewport) {
     const copy = this.texts.overlays[state];
     if (!copy) return;
     const { panel, button } = this.ui.overlay;
     const { colors, font } = this.ui;
     ctx.save();
-    drawOverlayFrame(ctx, this.world, panel, colors, this.images);
+    drawOverlayFrame(ctx, this.world, panel, colors, this.images, viewport);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = colors.accent;

@@ -12,6 +12,7 @@ import { Camera } from './components/Camera.js';
 import { DustParticles } from './components/DustParticles.js';
 import { BestScore } from './features/BestScore.js';
 import { Platforms } from './features/Platforms.js';
+import { GrassMotion } from './features/GrassMotion.js';
 import { CollectCoins } from './features/CollectCoins.js';
 import { Music } from './features/Music.js';
 import { SoundEffects } from './features/SoundEffects.js';
@@ -33,6 +34,7 @@ import { WinLose } from './features/WinLose.js';
 import { Chests } from './features/Chests.js';
 import { HellMode } from './features/HellMode.js';
 import { generateLevel } from './LevelGenerator.js';
+import { enterMobileFullscreen } from '../engine/fullscreen.js';
 
 export class Game {
   constructor(engine) {
@@ -47,11 +49,11 @@ export class Game {
     this.playerHealth = new PlayerHealth(settings.health);
     this.buildLevel();
     this.background = new Background(engine.images, settings.scene.background);
-    this.hud = new HUD(settings.ui, texts, canvas.width, engine.images);
+    this.hud = new HUD(settings.ui, texts, settings.world.width, engine.images);
     this.overlay = new Overlay(settings.ui, texts, settings.world, engine.images);
     this.controls = new Controls(settings.ui, texts, engine.images);
-    this.skillBar = new SkillBar(settings.ui, canvas.width);
-    this.boostBar = new BoostBar(settings.ui, canvas.width);
+    this.skillBar = new SkillBar(settings.ui, settings.world.width);
+    this.boostBar = new BoostBar(settings.ui, settings.world.width);
     this.cardOverlay = new CardOverlay(settings.ui, settings.cards, settings.world, engine.images);
     this.phase = 'ready';
     this.idleTime = 0;
@@ -67,6 +69,7 @@ export class Game {
     const { settings, canvas } = this;
     this.level = generateLevel(settings.level);
     this.platforms = new Platforms(this.level.platforms);
+    this.grassMotion = new GrassMotion();
     this.collectCoins = new CollectCoins(
       this.level.coins, this.level.enemies, settings.coinDrops, settings.coinMagnet);
     this.hazards = new Hazards(this.level, this.platforms.items);
@@ -89,7 +92,7 @@ export class Game {
     this.playerShots = new PlayerShots();
     this.playerMovement = new PlayerMovement(this.player, this.input, this.platforms, this.level.width);
     this.dust = new DustParticles(settings.player.dust);
-    this.camera = new Camera(canvas.width, canvas.height, this.level);
+    this.camera = new Camera(settings.world.width, settings.world.height, this.level);
     this.camera.follow(this.player);
   }
 
@@ -100,12 +103,9 @@ export class Game {
   bindControls() {
     this.canvas.addEventListener('pointerdown', (event) => {
       event.preventDefault();
+      enterMobileFullscreen();
       if (event.pointerType === 'touch') this.controls.showTouch = true;
-      const rect = this.canvas.getBoundingClientRect();
-      const point = {
-        x: (event.clientX - rect.left) * this.canvas.width / rect.width,
-        y: (event.clientY - rect.top) * this.canvas.height / rect.height,
-      };
+      const point = this.engine.renderer.toWorld(event.clientX, event.clientY);
       if (this.chests.active) {
         const hit = this.cardOverlay.hit(point, this.chests);
         if (hit?.kind === 'reroll') this.chests.reroll(this);
@@ -153,7 +153,9 @@ export class Game {
           'ArrowDown', 'Digit1', 'Digit2', 'Digit3'].includes(event.code)) event.preventDefault();
         return;
       }
-      if (event.code === this.settings.controls.pauseKey && !event.repeat) {
+      if ((event.code === 'Escape' || event.code === this.settings.controls.pauseKey)
+        && !event.repeat) {
+        event.preventDefault();
         if (this.state === 'playing') this.pause();
         else if (this.state === 'paused') this.resume();
       } else if (event.code === 'Enter' && !event.repeat && this.state !== 'playing') {
@@ -223,7 +225,13 @@ export class Game {
   }
 
   update(dt) {
+    if (this.reachGoal.phase === 'entering') {
+      if (this.reachGoal.update(dt, this.player, this.collectCoins,
+        this.enemies.bossDefeated)) this.finishWin();
+      return;
+    }
     this.hell.update(dt, this);
+    this.platforms.update(dt);
     this.dust.update(dt);
     this.effects.update(dt);
     this.hazards.update(dt);
@@ -234,6 +242,7 @@ export class Game {
       const wasGrounded = this.player.grounded;
       if (this.playerMovement.update(dt, this.boosts.speedMultiplier * this.cardBonuses.speed))
         this.dust.emit(this.player, this.player.facing);
+      this.grassMotion.update(dt, this.player, this.platforms.items);
       this.landingTime = !wasGrounded && this.player.grounded
         ? 0.16 : Math.max(0, this.landingTime - dt);
       this.idleTime = this.player.grounded && Math.abs(this.player.vx) < 6
@@ -282,10 +291,14 @@ export class Game {
     }
     this.chests.update(dt, this.player, this);
     if (this.chests.active) return;
-    if (this.winLose.checkWin(this.player, this.reachGoal, this.collectCoins,
-      this.enemies.bossDefeated)) {
-      this.sounds.play('win');
-      this.endAttempt();
-    }
+    if (this.reachGoal.update(dt, this.player, this.collectCoins,
+      this.enemies.bossDefeated)) this.finishWin();
+  }
+
+  finishWin() {
+    if (!this.winLose.checkWin(this.player, this.reachGoal, this.collectCoins,
+      this.enemies.bossDefeated)) return;
+    this.sounds.play('win');
+    this.endAttempt();
   }
 }

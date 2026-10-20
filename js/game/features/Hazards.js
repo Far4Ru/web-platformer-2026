@@ -7,7 +7,14 @@ export class Hazards {
     this.rising = level.risingSpikes.map((settings) =>
       new RisingSpikes(settings, platforms[settings.platformIndex]));
     this.items = [
-      ...level.hazard.map((bounds) => new Hazard(bounds)),
+      ...level.hazard.map((bounds) => {
+        const hazard = new Hazard(bounds);
+        hazard.surface = bounds.surface ?? platforms.find((platform) =>
+          Math.abs(platform.y - (bounds.y + bounds.height)) < 3
+          && bounds.x < platform.x + platform.width
+          && bounds.x + bounds.width > platform.x)?.surface ?? 'normal';
+        return hazard;
+      }),
       ...this.rising,
       ...level.hangingSpikes.map((settings) =>
         new HangingSpikes(settings, platforms[settings.platformIndex])),

@@ -5,8 +5,8 @@ export class HUD {
     this.ui = ui;
     this.texts = texts;
     this.worldWidth = worldWidth;
-    this.score = new Counter(ui.counters.score, texts.scoreLabel, ui, images);
-    this.best = new Counter(ui.counters.best, texts.bestLabel, ui, images);
+    this.score = new Counter(ui.counters.score, 'coin', ui, images);
+    this.best = new Counter(ui.counters.best, 'trophy', ui, images);
   }
 
   render(ctx, collected, best) {

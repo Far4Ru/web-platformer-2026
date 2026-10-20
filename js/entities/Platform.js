@@ -7,5 +7,13 @@ export class Platform extends Entity {
     this.surface = bounds.surface ?? 'normal';
     this.holeFor = 0;
     this.spikeFor = 0;
+    this.broken = false;
+    this.breakFor = 0;
+  }
+
+  break() {
+    if (!this.fake || this.broken) return;
+    this.broken = true;
+    this.breakFor = 0.45;
   }
 }

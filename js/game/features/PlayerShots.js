@@ -27,12 +27,11 @@ export class PlayerShots {
           shot.vy = 0;
         }
       }
-      const enemy = enemies.items.find((target) => target.alive && overlaps(shot, target));
+      const enemy = enemies.items.find((target) => target.alive
+        && target !== shot.missedTarget && overlaps(shot, target));
       if (enemy) {
-        if (Math.random() < (shot.hitChance ?? 1)) {
-          const damaged = enemy.takeDamage(shot.damage * damageMultiplier, shot.stun);
-          if (shot.freeze && damaged !== false) enemy.freeze(shot.freeze);
-        }
+        const damaged = enemy.takeDamage(shot.damage * damageMultiplier, shot.stun);
+        if (shot.freeze && damaged !== false) enemy.freeze(shot.freeze);
         shot.life = 0;
       }
     }

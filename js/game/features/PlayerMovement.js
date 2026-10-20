@@ -35,8 +35,10 @@ export class PlayerMovement {
     const startedOnGround = horizontal !== 0 && !frozen && horizontal !== this.lastInput && player.grounded;
     this.lastInput = horizontal;
     player.vy = Math.min(player.vy + settings.gravity * dt, settings.maxFallSpeed);
+    const previous = { x: player.x, y: player.y };
     this.platforms.move(player, dt);
     player.x = Math.max(0, Math.min(this.worldWidth - player.width, player.x));
+    this.platforms.touchFake?.(player, previous);
     return startedOnGround;
   }
 }

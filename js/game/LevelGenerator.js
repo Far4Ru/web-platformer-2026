@@ -257,7 +257,8 @@ export function generateLevel(template, requestedSeed) {
   const hazard = hazardIndices.map((index) => {
     const platform = route[index];
     return { x: platform.x + platform.width - rules.hazard.width - rules.hazard.edgeInset,
-      y: platform.y - rules.hazard.height, width: rules.hazard.width, height: rules.hazard.height };
+      y: platform.y - rules.hazard.height, width: rules.hazard.width,
+      height: rules.hazard.height, surface: platform.surface };
   });
   const risingSpikes = risingIndices.map((platformIndex, index) => {
     const platform = route[platformIndex];

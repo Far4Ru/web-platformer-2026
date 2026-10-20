@@ -15,6 +15,8 @@ export function drawPlayer(ctx, player, time = 0, image, actions, animation = {}
   }
   if (actionFrame === null || player.frozenFor > 0)
     drawSheetFrame(ctx, image, frame, 6, player.x - 10, player.y - 16, 52, 58, 70, 605);
+  else if (actionFrame === 4) drawSheetFrame(ctx, actions, actionFrame, 6,
+    player.x - 23, player.y - 19, 80, 77, 70, 605);
   else drawSheetFrame(ctx, actions, actionFrame, 6,
     player.x - 10, player.y - 16, 52, 58, 70, 605);
   ctx.restore();

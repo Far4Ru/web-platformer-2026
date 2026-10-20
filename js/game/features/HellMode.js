@@ -49,19 +49,25 @@ export class HellMode {
     if (this.kind === 'wall') this.wallX = Math.min(game.level.width, this.wallX + this.settings.wallSpeed * dt);
     if (this.kind === 'arrows') {
       if (this.timer <= 0) {
-        this.timer = this.settings.arrowInterval;
-        const center = game.player.x + game.player.width / 2;
-        for (let index = 0; index < this.settings.arrowCount; index++) {
-          const offset = (index - (this.settings.arrowCount - 1) / 2)
-            * this.settings.arrowSpacing + (this.random() - 0.5) * 16;
-          this.arrows.push(new Projectile({ x: center + offset,
+        this.timer = this.settings.arrowInterval * (0.55 + this.random() * 0.9);
+        if (this.arrows.length < 5 && this.random() < 0.8) {
+          const margin = this.settings.arrowSize * 3;
+          const viewWidth = game.settings.world.width;
+          const range = Math.max(1, viewWidth - margin * 2);
+          let x = game.camera.x + margin + this.random() * range;
+          const center = game.player.x + game.player.width / 2;
+          if (Math.abs(x - center) < 44) x = center + (x < center ? -60 : 60);
+          x = Math.max(game.camera.x + margin,
+            Math.min(game.camera.x + viewWidth - margin, x));
+          this.arrows.push(new Projectile({ x,
             y: game.camera.y - 20, width: this.settings.arrowSize,
             height: this.settings.arrowSize * 2, vx: 0, vy: this.settings.arrowSpeed,
             life: 2, kind: 'hellArrow' }));
         }
       }
       for (const arrow of this.arrows) arrow.update(dt);
-      this.arrows = this.arrows.filter((arrow) => arrow.life > 0 && arrow.y < game.camera.y + game.canvas.height + 40);
+      this.arrows = this.arrows.filter((arrow) => arrow.life > 0
+        && arrow.y < game.camera.y + game.settings.world.height + 40);
     }
     if (this.kind === 'holes' && this.timer <= 0) {
       this.timer = this.settings.holeInterval;

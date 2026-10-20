@@ -28,25 +28,28 @@ export class CardOverlay {
     return index < 0 ? null : { kind: 'choose', index };
   }
 
-  render(ctx, chests, game, time) {
+  render(ctx, chests, game, time, viewport = {
+    left: 0, top: 0, right: this.world.width, bottom: this.world.height,
+  }) {
     if (!chests.active) return;
     const palette = this.ui.cards.colors;
     ctx.save();
     ctx.fillStyle = palette.veil;
-    ctx.fillRect(0, 0, this.world.width, this.world.height);
+    ctx.fillRect(viewport.left, viewport.top,
+      viewport.right - viewport.left, viewport.bottom - viewport.top);
     ctx.textAlign = 'center';
     ctx.fillStyle = palette.text;
     ctx.font = `32px ${this.ui.font}`;
     if (chests.phase === 'opening') {
       ctx.fillText(this.settings.uiText.opening, this.world.width / 2, 190);
       drawChest(ctx, { x: 453, y: 230, width: 54, height: 54 },
-        -0.001 - Math.max(0, this.settings.openingDuration - chests.timer), this.settings.chestArt, false, this.images.pickups);
+        -0.001 - Math.max(0, this.settings.openingDuration - chests.timer), this.settings.chestArt, false, this.images.chestAnimation);
       ctx.font = `22px ${this.ui.font}`;
       ctx.fillText(this.settings.uiText.openingHint, this.world.width / 2, 345);
     } else if (chests.phase === 'transform') {
       ctx.fillText(this.settings.uiText.transform, this.world.width / 2, 240);
       drawChest(ctx, { x: 453, y: 267, width: 54, height: 54 },
-        -0.001 - Math.max(0, this.settings.transformDuration - chests.timer), this.settings.chestArt, true, this.images.pickups);
+        -0.001 - Math.max(0, this.settings.transformDuration - chests.timer), this.settings.chestArt, true, this.images.chestAnimation);
       ctx.fillStyle = this.settings.rarityColors.hell;
       ctx.fillText('!', this.world.width / 2, 300);
     } else if (chests.phase === 'reward') {

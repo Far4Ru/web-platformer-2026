@@ -4,7 +4,8 @@ export function drawCompanion(ctx, skill, player, art, time = 0, image) {
   const companion = skill.companion;
   if (!companion) return;
   ctx.save();
-  const frame = !companion.grounded ? 3 : Math.floor(time * 7) % 3;
+  const frame = !companion.grounded ? 3 : companion.moving
+    ? 1 + Math.floor(time * 7) % 2 : 0;
   if (companion.facing < 0) {
     ctx.translate(companion.x + companion.width / 2, 0);
     ctx.scale(-1, 1);
@@ -29,8 +30,8 @@ export function drawAbilityShot(ctx, shot, art, image) {
   ctx.save();
   ctx.translate(shot.x + shot.width / 2, shot.y + shot.height / 2);
   if (shot.kind === 'arrow') ctx.rotate(Math.atan2(shot.vy, shot.vx));
-  drawAtlasCell(ctx, image, ...cell, -shot.width * 1.6, -shot.height * 1.6,
-    shot.width * 3.2, shot.height * 3.2);
+  else if (shot.vx < 0) ctx.scale(-1, 1);
+  drawShotSprite(ctx, image[cell[1]][cell[0]], shot, 2.2);
   ctx.restore();
 }
 
@@ -44,14 +45,27 @@ export function drawEnemyAbility(ctx, enemy, art) {
 }
 
 export function drawEnemyShot(ctx, shot, art, image) {
-  drawAtlasCell(ctx, image, 1, 1, shot.x - shot.width,
-    shot.y - shot.height, shot.width * 3, shot.height * 3);
+  ctx.save();
+  ctx.translate(shot.x + shot.width / 2, shot.y + shot.height / 2);
+  if (shot.vx < 0) ctx.scale(-1, 1);
+  drawShotSprite(ctx, image[1][1], shot, 2.2);
+  ctx.restore();
+}
+
+function drawShotSprite(ctx, image, shot, scale) {
+  const ratio = image.width / image.height;
+  const maxWidth = shot.width * scale;
+  const maxHeight = shot.height * scale;
+  const width = Math.min(maxWidth, maxHeight * ratio);
+  const height = width / ratio;
+  ctx.drawImage(image, -width / 2, -height / 2, width, height);
 }
 
 export function drawEnemySpikes(ctx, spikes, art, image) {
   ctx.fillStyle = art.spikeSlot;
   ctx.fillRect(spikes.x, spikes.baseY - 3, spikes.width, 4);
   if (spikes.height <= 0) return;
-  drawAtlasCell(ctx, image, 2, 2, spikes.x - 4, spikes.y - 8,
+  const sprite = image[spikes.surface === 'ice' ? 1 : spikes.surface === 'swamp' ? 2 : 0];
+  ctx.drawImage(sprite, spikes.x - 4, spikes.y - 8,
     spikes.width + 8, spikes.height + 12);
 }

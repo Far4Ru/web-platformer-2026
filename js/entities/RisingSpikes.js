@@ -9,6 +9,7 @@ export class RisingSpikes extends Hazard {
       height: 0,
     });
     this.kind = 'rising';
+    this.surface = platform.surface;
     this.baseY = platform.y;
     this.maxHeight = settings.maxHeight;
     this.period = settings.period;

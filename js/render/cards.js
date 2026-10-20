@@ -1,4 +1,4 @@
-import { drawAtlasCell, drawGridCell } from './sprites.js';
+import { drawAtlasCell, drawGridCell, drawSheetFrame } from './sprites.js';
 import { drawNineSlice } from './uiImage.js';
 
 export function drawChest(ctx, chest, time, art, hell = false, image) {
@@ -7,7 +7,7 @@ export function drawChest(ctx, chest, time, art, hell = false, image) {
   if (hell) ctx.filter = 'hue-rotate(280deg) saturate(1.4)';
   const frame = time < 0 ? Math.min(3, Math.floor(-time * 9)) : 0;
   const groundOffset = time < 0 ? 0 : 18;
-  drawGridCell(ctx, image, frame, 1, 4, 3,
+  drawSheetFrame(ctx, image, frame, 4,
     chest.x - chest.width * 0.15, chest.y + groundOffset - chest.height * 0.12,
     chest.width * 1.3, chest.height * 1.2);
   ctx.restore();
@@ -42,13 +42,7 @@ export function drawCard(ctx, card, rect, color, font, palette, rarityLabel,
   }
   const iconX = rect.x + rect.width / 2 - 31;
   const iconY = rect.y + 117;
-  const skillCells = { sword: [1, 0], fireball: [0, 0], ice: [2, 0], bow: [0, 1],
-    healing: [2, 1], companion: [1, 1] };
-  if (card.id === 'health') drawGridCell(ctx, images.pickups, 0, 2, 4, 3, iconX, iconY, 62, 54);
-  else if (card.id === 'speed') drawGridCell(ctx, images.pickups, 1, 2, 4, 3, iconX, iconY, 62, 54);
-  else if (card.id === 'damage') drawGridCell(ctx, images.pickups, 2, 2, 4, 3, iconX, iconY, 62, 54);
-  else drawAtlasCell(ctx, images.effects, ...(skillCells[card.id] ?? [1, 2]),
-    iconX, iconY, 62, 54);
+  drawCardIcon(ctx, card.id, iconX, iconY, color, font, images);
   ctx.fillStyle = '#4d3c2e';
   ctx.font = `17px ${font}`;
   let y = rect.y + 191;
@@ -70,6 +64,34 @@ export function drawCard(ctx, card, rect, color, font, palette, rarityLabel,
       (rect.width - 32) * holdFraction, 7);
   }
   ctx.restore();
+}
+
+export function drawCardIcon(ctx, id, x, y, color, font, images) {
+  const pickups = { health: 0, speed: 1, damage: 2 };
+  const skills = { sword: [0, 0], fireball: [1, 0], ice: [2, 0],
+    bow: [0, 1], healing: [2, 1] };
+  if (id in pickups) {
+    drawGridCell(ctx, images.pickups, pickups[id], 2, 4, 3, x, y, 62, 54);
+  } else if (id in skills) {
+    drawAtlasCell(ctx, images.effects, ...skills[id], x, y, 62, 54);
+  } else if (id === 'companion') {
+    const frame = images.golem.frames[0];
+    ctx.drawImage(frame.image ?? images.golem.image, frame.x, frame.y, frame.w, frame.h,
+      x + 5, y, 52, 54);
+  } else {
+    const symbols = {
+      simplify: '−', complicate: '+', reroll: '↻', noBoss: '✕',
+      blessing: '✦', fakeFlight: '↑', fakeLight: '»',
+      wall: '▥', arrows: '↓', holes: '○', freeze: '❄',
+      enemies: '♜', spikes: '▲',
+    };
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = `bold 51px ${font}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(symbols[id] ?? '?', x + 31, y + 46);
+    ctx.restore();
+  }
 }
 
 export function drawRarityBanner(ctx, card, color, rarityLabel, title,
@@ -97,35 +119,43 @@ export function drawRarityBanner(ctx, card, color, rarityLabel, title,
   ctx.restore();
 }
 
-export function drawHellEffects(ctx, hell, platforms, art, image) {
+export function drawHellEffects(ctx, hell, platforms, art, image, spikes) {
   if (!hell.kind) return;
   for (const arrow of hell.arrows) {
     ctx.save();
     ctx.translate(arrow.x + arrow.width / 2, arrow.y + arrow.height / 2);
     ctx.rotate(Math.PI / 2);
-    drawAtlasCell(ctx, image, 0, 1, -arrow.height * 1.5, -arrow.width * 1.5,
-      arrow.height * 3, arrow.width * 3);
+    const sprite = image[1][0];
+    const width = Math.min(arrow.height * 1.6,
+      arrow.width * 1.6 * sprite.width / sprite.height);
+    const height = width * sprite.height / sprite.width;
+    ctx.drawImage(sprite, -width / 2, -height / 2, width, height);
     ctx.restore();
   }
   for (const platform of platforms) {
     if (platform.spikeFor <= 0) continue;
+    const sprite = spikes[platform.surface === 'ice' ? 1
+      : platform.surface === 'swamp' ? 2 : 0];
     for (let x = platform.x; x < platform.x + platform.width; x += 28)
-      drawAtlasCell(ctx, image, 2, 2, x - 3, platform.y - 20, 34, 25);
+      ctx.drawImage(sprite, x - 3, platform.y - 20, 34, 25);
   }
 }
 
-export function drawHellWall(ctx, hell, camera, canvas, art, shakeX = 0, image) {
+export function drawHellWall(ctx, hell, camera, canvas, art, shakeX = 0, image,
+  viewport = { left: 0, top: 0, right: canvas.width, bottom: canvas.height }) {
   if (hell.kind !== 'wall') return;
   const edgeX = hell.wallX - camera.x + shakeX;
   ctx.save();
   ctx.fillStyle = art.behindWall;
-  ctx.fillRect(0, 0, Math.max(0, Math.min(canvas.width, edgeX)), canvas.height);
+  ctx.fillRect(viewport.left, viewport.top,
+    Math.max(0, Math.min(viewport.right, edgeX) - viewport.left),
+    viewport.bottom - viewport.top);
   if (image) {
-    for (let y = 0; y < canvas.height; y += 48)
+    for (let y = viewport.top; y < viewport.bottom; y += 48)
       drawAtlasCell(ctx, image, 2, 2, edgeX - 14, y - 3, 52, 54);
   } else {
     ctx.fillStyle = art.wall;
-    ctx.fillRect(edgeX, 0, 24, canvas.height);
+    ctx.fillRect(edgeX, viewport.top, 24, viewport.bottom - viewport.top);
   }
   ctx.restore();
 }

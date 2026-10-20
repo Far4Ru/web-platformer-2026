@@ -9,5 +9,6 @@ export class HangingSpikes extends Hazard {
       height: settings.height,
     });
     this.kind = 'hanging';
+    this.surface = platform.surface;
   }
 }

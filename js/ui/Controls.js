@@ -1,4 +1,4 @@
-import { drawIcon, drawTouchButton } from '../render/controls.js';
+import { drawIcon } from '../render/controls.js';
 
 function contains(rect, point) {
   return point.x >= rect.x && point.x <= rect.x + rect.width &&
@@ -11,6 +11,11 @@ export class Controls {
     this.texts = texts;
     this.images = images;
     this.showTouch = matchMedia('(pointer: coarse)').matches;
+    this.touchAreas = {
+      left: { x: 32, y: 360, width: 112, height: 112 },
+      right: { x: 164, y: 360, width: 112, height: 112 },
+      jump: { x: 816, y: 360, width: 112, height: 112 },
+    };
   }
 
   hit(point, state) {
@@ -18,7 +23,7 @@ export class Controls {
     if (contains(this.ui.icons.sound, point)) return 'sound';
     if (['playing', 'paused'].includes(state) && contains(this.ui.icons.pause, point)) return 'pause';
     if (state === 'playing' && this.showTouch) {
-      for (const [action, rect] of Object.entries(this.ui.touch)) {
+      for (const [action, rect] of Object.entries(this.touchAreas)) {
         if (contains(rect, point)) return action;
       }
     }
@@ -30,9 +35,19 @@ export class Controls {
     drawIcon(ctx, this.ui.icons.sound, 'sound', this.ui.colors, muted, false, this.images);
     drawIcon(ctx, this.ui.icons.restart, 'restart', this.ui.colors, false, false, this.images);
     if (state === 'playing' && this.showTouch) {
-      for (const [action, rect] of Object.entries(this.ui.touch)) {
-        drawTouchButton(ctx, rect, this.texts.touchLabels[action], this.ui, this.images, action);
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold 54px ${this.ui.font}`;
+      ctx.fillStyle = '#fff5d6';
+      for (const [action, rect] of Object.entries(this.touchAreas)) {
+        ctx.globalAlpha = 0.85;
+        ctx.drawImage(this.images.roundButton, rect.x, rect.y, rect.width, rect.height);
+        ctx.globalAlpha = 1;
+        ctx.fillText(this.texts.touchLabels[action],
+          rect.x + rect.width / 2, rect.y + rect.height / 2 - 2);
       }
+      ctx.restore();
     }
   }
 }

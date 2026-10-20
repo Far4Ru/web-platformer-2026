@@ -2,6 +2,11 @@ import { Projectile } from '../../entities/Projectile.js';
 import { ProjectileSkill } from './ProjectileSkill.js';
 
 export class BowSkill extends ProjectileSkill {
+  constructor(settings, random = Math.random) {
+    super(settings);
+    this.random = random;
+  }
+
   createShot(player, enemies) {
     const originX = player.x + player.width / 2;
     const originY = player.y + player.height / 2;
@@ -22,7 +27,7 @@ export class BowSkill extends ProjectileSkill {
       const vy = (aimY - originY - this.settings.gravity * time * time / 2) / time;
       const speed = Math.hypot(vx, vy);
       const error = Math.abs(speed - this.settings.speed);
-      if (!trajectory || error < trajectory.error) trajectory = { vx, vy, error };
+      if (!trajectory || error < trajectory.error) trajectory = { vx, vy, error, time };
     }
     if (!trajectory || trajectory.error > this.settings.speedTolerance) return null;
     const { projectile } = this.settings;
@@ -33,7 +38,16 @@ export class BowSkill extends ProjectileSkill {
       life: projectile.life, kind: 'arrow', damage: this.settings.damage,
       stun: this.settings.stunDuration,
     });
-    shot.hitChance = [0, 0.15, 0.4, 1][this.level] ?? 1;
+    const hitChance = [0, 0.15, 0.4, 1][this.level] ?? 1;
+    shot.hitChance = hitChance;
+    if (this.random() >= hitChance) {
+      const missY = this.random() < 0.5
+        ? target.y - projectile.height - 35
+        : target.y + target.height + 35;
+      shot.vy = (missY - originY - this.settings.gravity * trajectory.time ** 2 / 2)
+        / trajectory.time;
+      shot.missedTarget = target;
+    }
     return shot;
   }
 }

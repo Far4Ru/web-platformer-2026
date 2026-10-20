@@ -7,48 +7,198 @@ function visiblePieces(platform) {
   ];
 }
 
-export function drawEarth(ctx, platforms, images, scene, camera, canvas) {
-  const bottom = camera.y + canvas.height;
+export function windPulse(time, x) {
+  const phase = ((time * 370 - x) % 1550 + 1550) % 1550;
+  const distance = Math.abs(phase - 775) / 245;
+  return distance >= 1 ? 0 : (1 + Math.cos(Math.PI * distance)) / 2;
+}
+
+function drawMirroredTile(ctx, image, sx, sy, sourceSize, x, y, width, height,
+  flipX, flipY = false) {
   ctx.save();
-  ctx.beginPath();
-  for (const platform of platforms) {
-    for (const piece of visiblePieces(platform)) {
-      if (piece.width <= 0 || piece.y >= bottom) continue;
-      ctx.rect(piece.x, piece.y, piece.width, bottom - piece.y);
-    }
+  if (flipX || flipY) {
+    ctx.translate(flipX ? 2 * x + width : 0, flipY ? 2 * y + height : 0);
+    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
   }
-  ctx.clip();
-  ctx.globalAlpha = scene.earthOpacity;
-  const tile = scene.earthTileSize;
-  const firstX = Math.floor(camera.x / tile) * tile;
-  const firstY = Math.floor(camera.y / tile) * tile;
-  for (let y = firstY; y < bottom; y += tile)
-    for (let x = firstX; x < camera.x + canvas.width; x += tile)
-      ctx.drawImage(images.earth, x, y, tile, tile);
+  ctx.drawImage(image, sx, sy, sourceSize, sourceSize, x, y, width, height);
   ctx.restore();
 }
 
-export function drawPlatform(ctx, platform, scene, images) {
-  const pieces = platform.fake ? [platform] : visiblePieces(platform);
-  for (const piece of pieces) {
-    if (piece.width <= 0) continue;
+export function drawEarth(ctx, platforms, images, scene, camera, viewport) {
+  const bottom = camera.y + viewport.bottom;
+  const left = camera.x + viewport.left;
+  const right = camera.x + viewport.right;
+  for (const platform of platforms) {
+    if (platform.fake || platform.broken) continue;
+    for (const piece of visiblePieces(platform)) {
+      const earthY = piece.y + piece.height;
+      if (piece.width <= 0 || earthY >= bottom) continue;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(piece.x, earthY, piece.width, bottom - earthY);
+      ctx.clip();
+      ctx.globalAlpha = scene.earthOpacity;
+      const tile = surfaceIndex(platform) ? 48 : scene.earthTileSize;
+      const firstX = Math.floor(Math.max(left, piece.x) / tile) * tile;
+      const firstY = Math.floor(Math.max(camera.y + viewport.top, earthY) / tile) * tile;
+      const surface = surfaceIndex(platform);
+      const image = surface ? images.platformBases[surface] : images.earth;
+      for (let y = firstY; y < bottom; y += tile) {
+        for (let x = firstX; x < Math.min(right, piece.x + piece.width); x += tile) {
+          if (surface) {
+            const crop = Math.min(image.height * 0.42, image.width * 0.3);
+            drawMirroredTile(ctx, image, image.width * 0.28, image.height * 0.4,
+              crop, x, y, tile, tile, Math.floor(x / tile) % 2 !== 0,
+              Math.floor(y / tile) % 2 !== 0);
+          } else ctx.drawImage(image, x, y, tile, tile);
+        }
+      }
+      ctx.restore();
+    }
+  }
+}
+
+function surfaceIndex(platform) {
+  return platform.surface === 'ice' ? 1 : platform.surface === 'swamp' ? 2 : 0;
+}
+
+function drawSheetCell(ctx, image, cell, columns, x, y, width, height,
+  sourceTop = 0, sourceHeight = image.height) {
+  const frameWidth = image.width / columns;
+  ctx.drawImage(image, frameWidth * cell, sourceTop, frameWidth, sourceHeight,
+    x, y, width, height);
+}
+
+function grassFrame(time, x, reaction, coveredByStillPlayer) {
+  if (reaction > 0) {
+    const age = 0.36 - reaction;
+    return age < 0.11 ? 1 : age < 0.22 ? 2 : age < 0.32 ? 3 : 0;
+  }
+  if (coveredByStillPlayer) return 0;
+  const gust = windPulse(time, x);
+  if (gust > 0.75) return 2;
+  if (gust > 0.25) return windPulse(time - 0.03, x) > gust ? 3 : 1;
+  return 0;
+}
+
+function variation(seed) {
+  const value = Math.sin(seed * 127.1 + 78.233) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function tuftsInPiece(piece, surface) {
+  if (surface === 1) return [];
+  const tufts = [];
+  for (let slot = Math.floor(piece.x / 78);
+    slot <= Math.ceil((piece.x + piece.width) / 78); slot++) {
+    const seed = slot * 31 + surface * 47;
+    if (variation(seed) < (surface === 2 ? 0.53 : 0.40)) continue;
+    const x = slot * 78 + 12 + variation(seed + 1) * 39;
+    if (x < piece.x + 14 || x > piece.x + piece.width - 14) continue;
+    tufts.push({
+      key: `${piece.y}:${surface}:${slot}`, x,
+      width: 38 + variation(seed + 2) * 18,
+      height: (surface === 2 ? 23 : 27) + variation(seed + 3) * 8,
+    });
+  }
+  return tufts;
+}
+
+export function grassTufts(platform) {
+  const surface = platform.surface === 'ice' ? 1 : platform.surface === 'swamp' ? 2 : 0;
+  return visiblePieces(platform).flatMap((piece) => tuftsInPiece(piece, surface));
+}
+
+export function drawPlatform(ctx, platform, scene, images, time = 0,
+  player = null, grassMotion = null) {
+  if (platform.broken) {
+    if (platform.breakFor <= 0) return;
+    const progress = 1 - platform.breakFor / 0.45;
+    const image = images.platformBases[platform.surface === 'ice' ? 1
+      : platform.surface === 'swamp' ? 2 : 0];
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(piece.x, piece.y - 8, piece.width, Math.max(piece.height, 42) + 8);
-    ctx.clip();
-    const surface = platform.surface === 'ice' ? 1 : platform.surface === 'swamp' ? 2 : 0;
-    const cellWidth = images.objects.width / 3;
-    const cellHeight = images.objects.height / 3;
-    for (let x = piece.x; x < piece.x + piece.width; x += 72) {
-      ctx.drawImage(images.objects, surface * cellWidth + 45, cellHeight + 60,
-        cellWidth - 90, 95, x, piece.y - 8, 73, 15);
-      ctx.drawImage(images.objects, surface * cellWidth + 45, cellHeight + 105,
-        cellWidth - 90, 190, x, piece.y + 7, 73, 42);
+    ctx.globalAlpha *= 1 - progress;
+    for (let shard = 0; shard < 4; shard++) {
+      const width = platform.width / 4;
+      const x = platform.x + shard * width;
+      ctx.save();
+      ctx.translate(x + width / 2, platform.y + platform.height / 2);
+      ctx.translate((shard - 1.5) * progress * 8, progress * progress * 42);
+      ctx.rotate((shard - 1.5) * progress * 0.18);
+      ctx.drawImage(image, image.width * shard / 4, 0, image.width / 4, image.height,
+        -width / 2, -platform.height / 2, width, platform.height);
+      ctx.restore();
     }
     ctx.restore();
+    return;
   }
-  if (platform.fake) {
-    ctx.fillStyle = scene.fakePlatformCrack;
-    ctx.fillRect(platform.x + platform.width - 14, platform.y + 12, 3, 3);
+  const pieces = platform.fake ? [platform] : visiblePieces(platform);
+  const surface = platform.surface === 'ice' ? 1 : platform.surface === 'swamp' ? 2 : 0;
+  for (const piece of pieces) {
+    if (piece.width <= 0) continue;
+    const blockHeight = piece.height;
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(piece.x, piece.y, piece.width, blockHeight, 5);
+    ctx.clip();
+    if (surface) {
+      const image = images.platformBases[surface];
+      const tileWidth = 96;
+      for (let x = Math.floor(piece.x / tileWidth) * tileWidth;
+        x < piece.x + piece.width; x += tileWidth) {
+        ctx.save();
+        if (Math.floor(x / tileWidth) % 2 !== 0) {
+          ctx.translate(2 * x + tileWidth, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(image, x, piece.y, tileWidth, blockHeight);
+        ctx.restore();
+      }
+    } else ctx.drawImage(images.platformBases[surface],
+      piece.x, piece.y, piece.width, blockHeight);
+
+    // Sparse image decals provide wear without baking it into the block texture.
+    for (let slot = Math.floor(piece.x / 103); slot <= Math.ceil((piece.x + piece.width) / 103);
+      slot++) {
+      const seed = slot * 7 + surface * 31;
+      if (variation(seed) < 0.48) continue;
+      const x = slot * 103 + 23 + variation(seed + 1) * 35;
+      if (x < piece.x + 12 || x > piece.x + piece.width - 12) continue;
+      const cell = surface === 1 ? (variation(seed + 2) < 0.5 ? 3 : 4)
+        : surface === 2 ? (variation(seed + 2) < 0.5 ? 5 : 2)
+          : variation(seed + 2) < 0.5 ? 0 : 2;
+      drawSheetCell(ctx, images.surfaceDetails, cell, 6,
+        x - 13, piece.y + 5, 26, Math.min(16, blockHeight - 6),
+        images.surfaceDetails.height * 0.18, images.surfaceDetails.height * 0.62);
+    }
+    ctx.restore();
+
+    if (surface !== 1) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(piece.x, piece.y - 38, piece.width, 48);
+      ctx.clip();
+      for (const tuft of tuftsInPiece(piece, surface)) {
+        const coveredByStillPlayer = player && Math.abs(player.vx) < 25
+          && player.x + player.width > tuft.x - tuft.width / 2
+          && player.x < tuft.x + tuft.width / 2
+          && Math.abs(player.y + player.height - piece.y) < 16;
+        const reaction = grassMotion?.remaining(tuft.key) ?? 0;
+        const frame = grassFrame(time, tuft.x, reaction, coveredByStillPlayer);
+        ctx.save();
+        if (reaction > 0 && grassMotion.direction(tuft.key) < 0) {
+          ctx.translate(tuft.x * 2, 0);
+          ctx.scale(-1, 1);
+        }
+        drawSheetCell(ctx, images.grassWind, frame, 4,
+          tuft.x - tuft.width / 2, piece.y - tuft.height + 8,
+          tuft.width, tuft.height,
+          images.grassWind.height * 0.25, images.grassWind.height * 0.5);
+        ctx.restore();
+      }
+      ctx.restore();
+    }
   }
+  if (platform.fake) drawSheetCell(ctx, images.surfaceDetails, 0, 6,
+    platform.x + platform.width - 26, platform.y + 8, 18, 17);
 }

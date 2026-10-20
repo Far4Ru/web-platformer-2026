@@ -1,8 +1,11 @@
 import { drawNineSlice } from './uiImage.js';
 
-export function drawOverlayFrame(ctx, world, panel, colors, images) {
+export function drawOverlayFrame(ctx, world, panel, colors, images, viewport = {
+  left: 0, top: 0, right: world.width, bottom: world.height,
+}) {
   ctx.fillStyle = colors.veil;
-  ctx.fillRect(0, 0, world.width, world.height);
+  ctx.fillRect(viewport.left, viewport.top,
+    viewport.right - viewport.left, viewport.bottom - viewport.top);
   drawNineSlice(ctx, images.panel, panel.x, panel.y, panel.width, panel.height);
 }
 

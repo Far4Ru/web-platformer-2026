@@ -15,13 +15,19 @@ import { drawCompanion, drawAbilityShot,
   drawEnemyAbility, drawEnemyShot, drawEnemySpikes } from '../../render/abilities.js';
 import { drawMovementHint } from '../../render/movementHint.js';
 
+export function visibleGroundPlatforms(platforms, left, right) {
+  return platforms.filter((platform) =>
+    platform.x + platform.width >= left - 90 && platform.x <= right + 90);
+}
+
 export class GameScene {
   constructor(game, art) {
     this.game = game;
     this.art = art;
   }
 
-  render(ctx, canvas, time) {
+  render(ctx, canvas, time, viewport = { left: 0, top: 0,
+    right: canvas.width, bottom: canvas.height }) {
     const { game, art } = this;
     const platforms = game.platforms.items;
     const coins = game.collectCoins.items;
@@ -29,21 +35,37 @@ export class GameScene {
     const goal = game.reachGoal.goal;
     const { player, state, overlay, hud, controls } = game;
 
-    game.background.render(ctx, canvas, time, game.camera, game.level.width);
+    game.background.render(ctx, canvas, time, game.camera, game.level.width, viewport);
+    const { counters, icons } = game.settings.ui;
+    counters.score.x = viewport.left + 20;
+    counters.best.x = viewport.left + 164;
+    icons.sound.x = viewport.right - 192;
+    icons.pause.x = viewport.right - 130;
+    icons.restart.x = viewport.right - 68;
+    for (const rect of [...Object.values(counters), ...Object.values(icons)])
+      rect.y = viewport.top + 18;
+    controls.touchAreas.left.x = viewport.left + 32;
+    controls.touchAreas.right.x = viewport.left + 164;
+    controls.touchAreas.jump.x = viewport.right - 144;
+    for (const rect of Object.values(controls.touchAreas)) {
+      rect.y = viewport.bottom - rect.height - 70;
+    }
     ctx.save();
     const shake = game.hell.kind ? game.settings.cards.hell.shake : 0;
     const shakeX = Math.sin(time * 37) * shake;
     ctx.translate(-game.camera.x + shakeX,
       -game.camera.y + Math.cos(time * 43) * shake);
-    const visiblePlatforms = platforms.filter((platform) =>
-      platform.x + platform.width >= game.camera.x - 90
-      && platform.x <= game.camera.x + canvas.width + 90);
-    drawEarth(ctx, visiblePlatforms, game.engine.images, art, game.camera, canvas);
-    for (const platform of visiblePlatforms) drawPlatform(ctx, platform, art, game.engine.images);
-    drawHellEffects(ctx, game.hell, platforms, art.hell, game.engine.images.effects);
-    for (const hazard of hazards) drawHazard(ctx, hazard, art, game.engine.images.objects);
+    const visibleLeft = game.camera.x + viewport.left;
+    const visibleRight = game.camera.x + viewport.right;
+    const groundPlatforms = visibleGroundPlatforms(platforms, visibleLeft, visibleRight);
+    drawEarth(ctx, groundPlatforms, game.engine.images, art, game.camera, viewport);
+    for (const platform of groundPlatforms)
+      drawPlatform(ctx, platform, art, game.engine.images, time, player, game.grassMotion);
+    drawHellEffects(ctx, game.hell, platforms, art.hell,
+      game.engine.images.effects, game.engine.images.spikeVariants);
+    for (const hazard of hazards) drawHazard(ctx, hazard, art, game.engine.images.spikeVariants);
     for (const spikes of game.enemies.spikes) drawEnemySpikes(ctx, spikes,
-      art.abilities, game.engine.images.effects);
+      art.abilities, game.engine.images.spikeVariants);
     for (const shot of game.enemies.projectiles) drawEnemyShot(ctx, shot,
       art.abilities, game.engine.images.effects);
     for (const enemy of game.enemies.items) {
@@ -54,24 +76,48 @@ export class GameScene {
       }
     }
     coins.forEach((coin, index) => drawCoin(ctx, coin, index, art, time,
-      game.engine.images.pickups));
+      game.engine.images.coinAnimation));
     for (const chest of game.chests.items) drawChest(ctx, chest, time,
-      game.settings.cards.chestArt, false, game.engine.images.pickups);
+      game.settings.cards.chestArt, false, game.engine.images.chestAnimation);
     for (const [kind, pickup] of Object.entries(game.boosts.pickups)) {
       drawBoostPickup(ctx, pickup, kind, art.boosts, time, game.engine.images.pickups);
     }
-    drawGoal(ctx, goal, game.reachGoal.progress(game.collectCoins),
-      game.reachGoal.isReady(game.collectCoins, game.enemies.bossDefeated), art,
-      game.engine.images.objects, time);
+    const goalProgress = game.reachGoal.progress(game.collectCoins);
+    const goalReady = game.reachGoal.isReady(game.collectCoins, game.enemies.bossDefeated);
+    const goalNear = Math.abs(player.x + player.width / 2 - (goal.x + goal.width / 2)) < 185
+      && Math.abs(player.y + player.height / 2 - (goal.y + goal.portalOffsetY)) < 135;
+    const needed = Math.max(0,
+      Math.ceil(game.collectCoins.total * game.reachGoal.openFraction)
+      - game.collectCoins.count);
+    const notice = state === 'playing' && goalNear
+      ? needed > 0 ? `Вижу недостойного!\nТебе не хватает ${needed} монет`
+        : 'Кажется я вижу достойного...' : '';
+    drawGoal(ctx, goal, goalProgress, goalReady, art,
+      game.engine.images.objects, time, game.reachGoal.phase,
+      game.reachGoal.phaseTime, notice);
     drawDust(ctx, game.dust.particles, game.dust.settings.life, game.engine.images.effects);
     drawHealingBeam(ctx, player, game.camera, game.healingSkill, game.engine.images.effects);
     drawCompanion(ctx, game.companionSkill, player, art.abilities, time, game.engine.images.golem);
+    const entering = game.reachGoal.phase === 'entering'
+      ? Math.min(1, game.reachGoal.phaseTime / game.reachGoal.enterDuration) : 0;
+    ctx.save();
+    if (entering) {
+      const playerCenterX = player.x + player.width / 2;
+      const playerCenterY = player.y + player.height / 2;
+      ctx.translate((goal.x + goal.width / 2 - playerCenterX) * entering,
+        (goal.y + goal.portalOffsetY - playerCenterY) * entering);
+      ctx.translate(playerCenterX, playerCenterY);
+      ctx.scale(1 - entering * 0.8, 1 - entering * 0.8);
+      ctx.translate(-playerCenterX, -playerCenterY);
+      ctx.globalAlpha = 1 - entering;
+    }
     drawPlayer(ctx, player, time, game.engine.images.explorer,
       game.engine.images.explorerActions, {
         attacking: game.swordSkill.attackTime > 0,
         landing: game.landingTime > 0,
         won: state === 'won',
       });
+    ctx.restore();
     drawMovementHint(ctx, player, game.idleTime, game.engine.images, time);
     drawSwordAttack(ctx, player, game.swordSkill, game.engine.images.effects);
     for (const shot of game.playerShots.items) drawAbilityShot(ctx, shot,
@@ -80,13 +126,13 @@ export class GameScene {
     drawParticles(ctx, game.effects.items, game.effects.settings, game.engine.images.effects);
     ctx.restore();
     drawHellWall(ctx, game.hell, game.camera, canvas, art.hell,
-      shakeX, game.engine.images.effects);
+      shakeX, game.engine.images.effects, viewport);
 
-    if (state !== 'playing') overlay.render(ctx, state);
+    if (state !== 'playing') overlay.render(ctx, state, viewport);
     hud.render(ctx, game.collectCoins.count, game.bestScore.value);
     game.skillBar.render(ctx, game);
     game.boostBar.render(ctx, game.boosts, game.engine.images.effects);
     controls.render(ctx, state, game.music.muted);
-    game.cardOverlay.render(ctx, game.chests, game, time);
+    game.cardOverlay.render(ctx, game.chests, game, time, viewport);
   }
 }

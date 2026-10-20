@@ -5,7 +5,12 @@ export function getCanvas(selector) {
 }
 
 export function configureCanvas(canvas, settings) {
-  canvas.width = settings.world.width;
-  canvas.height = settings.world.height;
-  canvas.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.round(rect.width * ratio));
+    canvas.height = Math.max(1, Math.round(rect.height * ratio));
+  };
+  resize();
+  window.addEventListener('resize', resize);
 }

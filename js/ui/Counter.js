@@ -15,12 +15,11 @@ export class Counter {
     drawCounterPanel(ctx, this.rect, colors, this.images);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = colors.muted;
-    ctx.font = `14px ${font}`;
-    ctx.fillText(this.label, x + 13, y + 17);
+    const icon = this.label === 'coin' ? this.images.objects[0][0] : this.images.iconTrophy;
+    ctx.drawImage(icon, x + 8, y + 8, 40, 40);
     ctx.fillStyle = colors.gold;
-    ctx.font = `23px ${font}`;
-    ctx.fillText(String(value), x + 13, y + 40);
+    ctx.font = `bold 24px ${font}`;
+    ctx.fillText(String(value), x + 55, y + 29, this.rect.width - 62);
     ctx.restore();
   }
 }

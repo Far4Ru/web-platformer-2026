@@ -1,6 +1,6 @@
 # Generated image prompts
 
-The backgrounds and textures in `assets/images/` and the animation sheets in `assets/spritesheets/` were generated with the built-in `image_gen` tool for the jungle temple platformer.
+The backgrounds and textures in `assets/images/` and the original animation sheets in `assets/spritesheets/source/` were generated with the built-in `image_gen` tool for the jungle temple platformer. Runtime static sprites are in `assets/sprites/`; animations are PNG sheets with JSON frame metadata in `assets/animations/`.
 
 | File | Final prompt |
 | --- | --- |
@@ -16,3 +16,5 @@ The backgrounds and textures in `assets/images/` and the animation sheets in `as
 | `effects.png` | Transparent 3×3 sprite atlas: silver sword slash, fireball, ice shard; wooden arrow, hostile magic projectile, healing beam; dust puff, coin sparkle, cursed spike. Equal isolated cells, hand-painted pixel-art, no text. |
 | `pickups.png` | Transparent 4×3 sprite sheet: four spinning gold coin frames, four treasure chest opening frames, red heal potion, speed boots, damage sword and sparkles. Equal isolated cells, hand-painted jungle temple game art, no text. |
 | `explorer-actions.png` | Transparent six-frame horizontal sheet of the same jungle explorer: jump preparation, leap, fall, landing, golden sword swing and victory pose. Equal isolated cells and consistent feet baseline. |
+| `splash-art.png` | Built-in imagegen, landscape 16:9: one full-bleed jungle-temple splash image. A larger detailed explorer faces forward at center behind a slightly arched gold-and-ivory logo reading exactly «ТАЙНА» / «ДРЕВНЕГО ХРАМА». Her hand holds the embossed-face coin used in the game. Thin vines emerge behind the logo, a few coins sit in the distant background, and a soft dark vignette shades the edges. The hat and hands remain within the frame. Keep the bottom 15% as empty, low-detail dark jungle stone for the engine-rendered loading label and bar; paint no UI into the image. References: `assets/animations/explorer/idle.png`, `assets/sprites/objects/gold-coin.png`, and earlier generated logo/composition assets. |
+| `splash-art-portrait.png` | Built-in imagegen, portrait 9:16 adaptation of `splash-art.png`: same centered character behind the raised, enlarged, gently arched Cyrillic logo; exact in-game coin motif, vines, jungle and ruins, a few background coins and vignette. Keep the bottom 15% as empty, low-detail dark jungle stone for the engine-rendered loading label and bar. Character and complete logo remain within the portrait frame. |

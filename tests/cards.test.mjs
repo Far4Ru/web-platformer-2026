@@ -6,7 +6,7 @@ import { HellMode } from '../js/game/features/HellMode.js';
 import { PlayerHealth } from '../js/game/features/PlayerHealth.js';
 import { PlayerMovement } from '../js/game/features/PlayerMovement.js';
 import { Platforms } from '../js/game/features/Platforms.js';
-import { drawCard, drawHellWall, drawRarityBanner } from '../js/render/cards.js';
+import { drawCard, drawCardIcon, drawHellWall, drawRarityBanner } from '../js/render/cards.js';
 
 const settings = JSON.parse(readFileSync(new URL('../assets/json/game.json', import.meta.url), 'utf8'));
 const chestBounds = [
@@ -160,9 +160,31 @@ test('held card grows while its confirmation progress is shown', () => {
     { x: 100, y: 100, width: 232, height: 252 }, '#fff', 'Alice, serif',
     settings.ui.cards.colors, 'ОБЫЧНАЯ', '', true, 0.5, 1,
     { panel: { width: 64, height: 64 }, panelBorder: { width: 64, height: 64 },
-      pickups: { width: 1536, height: 1024 }, effects: { width: 1536, height: 1024 } });
+      pickups: [[], [], [{ width: 362, height: 362 }]],
+      effects: [[{ width: 512, height: 341 }]] });
   assert(scales[0][0] > 1);
   assert(fills.some((rect) => rect[2] === 100));
+});
+
+test('card icons use the image that belongs to their effect', () => {
+  const draws = [];
+  const ctx = {
+    drawImage(image) { draws.push(image); },
+    save() {}, restore() {}, fillText() {},
+  };
+  const effects = Array.from({ length: 3 }, (_, row) =>
+    Array.from({ length: 3 }, (_, column) => `effect-${row}-${column}`));
+  const pickups = [[], [], ['health', 'speed', 'damage']];
+  const golem = { frames: [{ image: 'golem', x: 0, y: 0, w: 10, h: 10 }] };
+  const images = { effects, pickups, golem };
+  for (const id of ['health', 'speed', 'damage', 'sword', 'fireball',
+    'ice', 'bow', 'healing', 'companion']) drawCardIcon(ctx, id, 0, 0, '#fff', 'serif', images);
+  assert.deepEqual(draws, [
+    'health', 'speed', 'damage', 'effect-0-0', 'effect-0-1',
+    'effect-0-2', 'effect-1-0', 'effect-1-2', 'golem',
+  ]);
+  for (const card of [...settings.cards.entries, ...settings.cards.hellEntries])
+    assert.doesNotThrow(() => drawCardIcon(ctx, card.id, 0, 0, '#fff', 'serif', images));
 });
 
 test('hell freeze still lets gravity act; ice slides and swamp slows', () => {

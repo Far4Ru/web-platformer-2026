@@ -85,6 +85,7 @@ export class Enemies {
           enemy.x + enemy.direction * (spikes.offset + index * (spikes.spacing ?? 0))));
         const spike = new TriggeredSpikes(x, enemy.platform.y, spikes);
         spike.boss = enemy.boss;
+        spike.surface = enemy.platform.surface;
         this.spikes.push(spike);
       }
     }

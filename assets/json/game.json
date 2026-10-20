@@ -1,46 +1,96 @@
 {
   "storageKey": "star-coin-best",
-  "music": { "src": "assets/music/background.mp3", "volume": 0.4 },
-  "sounds": {
-    "jump": { "src": "assets/sounds/jump.wav", "volume": 0.23 },
-    "coin": { "src": "assets/sounds/coin.wav", "volume": 0.22 },
-    "hurt": { "src": "assets/sounds/hurt.wav", "volume": 0.28 },
-    "sword": { "src": "assets/sounds/sword.wav", "volume": 0.25 },
-    "enemy": { "src": "assets/sounds/enemy.wav", "volume": 0.28 },
-    "chest": { "src": "assets/sounds/chest.wav", "volume": 0.3 },
-    "card": { "src": "assets/sounds/card.wav", "volume": 0.3 },
-    "win": { "src": "assets/sounds/win.wav", "volume": 0.32 }
+  "music": {
+    "src": "assets/music/background.mp3",
+    "volume": 0.4
   },
-  "particles": { "count": 7, "life": 0.48, "speed": 90, "lift": 35, "gravity": 230, "size": 22 },
+  "sounds": {
+    "jump": {
+      "src": "assets/sounds/jump.wav",
+      "volume": 0.23
+    },
+    "coin": {
+      "src": "assets/sounds/coin.wav",
+      "volume": 0.22
+    },
+    "hurt": {
+      "src": "assets/sounds/hurt.wav",
+      "volume": 0.28
+    },
+    "sword": {
+      "src": "assets/sounds/sword.wav",
+      "volume": 0.25
+    },
+    "enemy": {
+      "src": "assets/sounds/enemy.wav",
+      "volume": 0.28
+    },
+    "chest": {
+      "src": "assets/sounds/chest.wav",
+      "volume": 0.3
+    },
+    "card": {
+      "src": "assets/sounds/card.wav",
+      "volume": 0.3
+    },
+    "win": {
+      "src": "assets/sounds/win.wav",
+      "volume": 0.32
+    }
+  },
+  "particles": {
+    "count": 7,
+    "life": 0.48,
+    "speed": 90,
+    "lift": 35,
+    "gravity": 230,
+    "size": 22
+  },
   "images": {
-    "explorer": "assets/spritesheets/explorer.png",
-    "explorerActions": "assets/spritesheets/explorer-actions.png",
-    "golem": "assets/spritesheets/golem.png",
-    "guardian": "assets/spritesheets/guardian.png",
-    "boss": "assets/spritesheets/boss.png",
+    "explorer": { "base": "assets/animations/explorer", "clips": ["idle", "run", "jump", "hurt", "victory"], "order": [["idle", 0], ["run", 0], ["run", 1], ["jump", 0], ["hurt", 0], ["victory", 0]] },
+    "explorerActions": { "base": "assets/animations/explorer-actions", "clips": ["prepare", "leap", "fall", "land", "sword", "victory"], "order": [["prepare", 0], ["leap", 0], ["fall", 0], ["land", 0], ["sword", 0], ["victory", 0]] },
+    "golem": { "base": "assets/animations/golem", "clips": ["idle", "walk", "cast"], "order": [["idle", 0], ["walk", 0], ["walk", 1], ["cast", 0]] },
+    "guardian": { "base": "assets/animations/guardian", "clips": ["idle", "walk", "attack"], "order": [["idle", 0], ["walk", 0], ["walk", 1], ["attack", 0]] },
+    "boss": { "base": "assets/animations/boss", "clips": ["idle", "walk", "attack", "hurt"], "order": [["idle", 0], ["walk", 0], ["attack", 0], ["hurt", 0]] },
+    "coinAnimation": { "base": "assets/animations/pickups", "clips": ["spin"], "order": [["spin", 0], ["spin", 1], ["spin", 2], ["spin", 3]] },
+    "chestAnimation": { "base": "assets/animations/pickups", "clips": ["open"], "order": [["open", 0], ["open", 1], ["open", 2], ["open", 3]] },
     "jungle": "assets/images/jungle.png",
     "temple": "assets/images/temple.png",
-    "foliage": "assets/images/foliage.png",
+    "foliage": "assets/images/foliage-base.png",
     "earth": "assets/images/earth.png",
-    "objects": "assets/spritesheets/objects.png",
-    "effects": "assets/spritesheets/effects.png",
-    "pickups": "assets/spritesheets/pickups.png",
+    "grassWind": "assets/sprites/decor/grass-wind-v3.png",
+    "vineWind": "assets/sprites/decor/vine-wind-v2.png",
+    "surfaceDetails": "assets/sprites/decor/surface-details.png",
+    "platformBases": ["assets/sprites/objects/moss-platform-base.png", "assets/sprites/objects/ice-platform-base.png", "assets/sprites/objects/swamp-platform-base.png"],
+    "spikeVariants": ["assets/sprites/objects/stone-spike.png", "assets/sprites/objects/ice-spike.png", "assets/sprites/objects/swamp-spike.png"],
+    "objects": [["assets/sprites/objects/gold-coin.png", "assets/sprites/objects/moss-chest.png", "assets/sprites/objects/cursed-chest.png"], ["assets/sprites/objects/moss-platform.png", "assets/sprites/objects/ice-platform.png", "assets/sprites/objects/swamp-platform.png"], ["assets/sprites/objects/stone-spike.png", "assets/sprites/objects/jade-portal-open.png", "assets/sprites/objects/carved-pedestal.png"]],
+    "effects": [["assets/sprites/effects/sword-slash.png", "assets/sprites/effects/fireball.png", "assets/sprites/effects/ice-shard.png"], ["assets/sprites/effects/wooden-arrow.png", "assets/sprites/effects/hostile-projectile.png", "assets/sprites/effects/healing-beam.png"], ["assets/sprites/effects/dust-puff.png", "assets/sprites/effects/coin-sparkle.png", "assets/sprites/effects/cursed-spike.png"]],
+    "pickups": [[], [], ["assets/sprites/pickups/heal-potion.png", "assets/sprites/pickups/speed-boots.png", "assets/sprites/pickups/damage-sword.png", "assets/sprites/pickups/sparkles.png"]],
     "panel": "assets/ui/panel_brown.png",
     "panelDark": "assets/ui/panel_brown_dark.png",
     "panelBorder": "assets/ui/panel_border_brown.png",
     "button": "assets/ui/button_brown.png",
     "buttonRed": "assets/ui/button_red.png",
     "roundButton": "assets/ui/round_brown.png",
+    "iconPause": "assets/ui/icon-pause.png",
+    "iconPlay": "assets/ui/icon-play.png",
+    "iconSound": "assets/ui/icon-sound.png",
+    "iconSoundOff": "assets/ui/icon-sound-off.png",
+    "iconRestart": "assets/ui/icon-restart.png",
+    "iconTrophy": "assets/ui/icon-trophy.png",
     "keyLeft": "assets/ui/keyboard_arrow_left.png",
     "keyRight": "assets/ui/keyboard_arrow_right.png",
     "keyUp": "assets/ui/keyboard_arrow_up.png",
     "keyDown": "assets/ui/keyboard_arrow_down.png",
     "keySpace": "assets/ui/keyboard_space_icon.png"
   },
-  "world": { "width": 960, "height": 540 },
+  "world": {
+    "width": 960,
+    "height": 540
+  },
   "maxFrameStep": 0.0333333333,
   "controls": {
-    "pauseKey": "KeyP",
+    "pauseKey": "Escape",
     "keys": {
       "ArrowLeft": "left",
       "KeyA": "left",
@@ -52,7 +102,10 @@
     }
   },
   "player": {
-    "spawn": { "x": 78, "y": 420 },
+    "spawn": {
+      "x": 78,
+      "y": 420
+    },
     "width": 32,
     "height": 40,
     "moveSpeed": 245,
@@ -70,7 +123,11 @@
       "lift": 65,
       "liftStep": 14,
       "gravity": 260,
-      "colors": ["#c9a56d", "#91a65a", "#ead49d"]
+      "colors": [
+        "#c9a56d",
+        "#91a65a",
+        "#ead49d"
+      ]
     },
     "colors": {
       "outline": "#273b29",
@@ -85,24 +142,94 @@
       "frozenOverlay": "rgba(170, 225, 255, 0.45)"
     },
     "sprite": [
-      { "x": 2, "y": 3, "width": 28, "height": 37, "color": "outline" },
-      { "x": 3, "y": 17, "width": 7, "height": 17, "color": "pack" },
-      { "x": 5, "y": 3, "width": 22, "height": 17, "color": "hair" },
-      { "x": 8, "y": 7, "width": 17, "height": 12, "color": "face" },
-      { "x": 2, "y": 19, "width": 28, "height": 17, "color": "coat" },
-      { "x": 4, "y": 0, "width": 24, "height": 5, "color": "hat" },
-      { "x": 1, "y": 5, "width": 30, "height": 3, "color": "hat" },
-      { "x": 5, "y": 8, "width": 22, "height": 2, "color": "band" },
-      { "x": 20, "y": 10, "width": 3, "height": 3, "color": "eye" },
-      { "x": 2, "y": 36, "width": 11, "height": 4, "color": "shoes" },
-      { "x": 20, "y": 36, "width": 11, "height": 4, "color": "shoes" }
+      {
+        "x": 2,
+        "y": 3,
+        "width": 28,
+        "height": 37,
+        "color": "outline"
+      },
+      {
+        "x": 3,
+        "y": 17,
+        "width": 7,
+        "height": 17,
+        "color": "pack"
+      },
+      {
+        "x": 5,
+        "y": 3,
+        "width": 22,
+        "height": 17,
+        "color": "hair"
+      },
+      {
+        "x": 8,
+        "y": 7,
+        "width": 17,
+        "height": 12,
+        "color": "face"
+      },
+      {
+        "x": 2,
+        "y": 19,
+        "width": 28,
+        "height": 17,
+        "color": "coat"
+      },
+      {
+        "x": 4,
+        "y": 0,
+        "width": 24,
+        "height": 5,
+        "color": "hat"
+      },
+      {
+        "x": 1,
+        "y": 5,
+        "width": 30,
+        "height": 3,
+        "color": "hat"
+      },
+      {
+        "x": 5,
+        "y": 8,
+        "width": 22,
+        "height": 2,
+        "color": "band"
+      },
+      {
+        "x": 20,
+        "y": 10,
+        "width": 3,
+        "height": 3,
+        "color": "eye"
+      },
+      {
+        "x": 2,
+        "y": 36,
+        "width": 11,
+        "height": 4,
+        "color": "shoes"
+      },
+      {
+        "x": 20,
+        "y": 36,
+        "width": 11,
+        "height": 4,
+        "color": "shoes"
+      }
     ]
   },
   "health": {
     "max": 3,
     "invulnerability": 1,
     "drainTime": 0.35,
-    "bar": { "width": 44, "height": 5, "offsetY": 20 },
+    "bar": {
+      "width": 44,
+      "height": 5,
+      "offsetY": 20
+    },
     "colors": {
       "border": "#e7f5ff",
       "empty": "#3d2535",
@@ -112,9 +239,35 @@
   },
   "boosts": {
     "items": {
-      "heal": { "amount": 1, "pickup": { "x": 500, "y": 250, "width": 28, "height": 28 } },
-      "speed": { "duration": 6, "multiplier": 1.5, "pickup": { "x": 3200, "y": 500, "width": 28, "height": 28 } },
-      "damage": { "duration": 8, "multiplier": 2, "pickup": { "x": 5900, "y": -300, "width": 28, "height": 28 } }
+      "heal": {
+        "amount": 1,
+        "pickup": {
+          "x": 500,
+          "y": 250,
+          "width": 28,
+          "height": 28
+        }
+      },
+      "speed": {
+        "duration": 6,
+        "multiplier": 1.5,
+        "pickup": {
+          "x": 3200,
+          "y": 500,
+          "width": 28,
+          "height": 28
+        }
+      },
+      "damage": {
+        "duration": 8,
+        "multiplier": 2,
+        "pickup": {
+          "x": 5900,
+          "y": -300,
+          "width": 28,
+          "height": 28
+        }
+      }
     }
   },
   "healingSkill": {
@@ -153,21 +306,69 @@
   "enemyAbilities": {
     "chance": 0.7,
     "interval": 3,
-    "kinds": ["shoot", "spikes", "dash", "jump"],
-    "shot": { "size": 10, "speed": 210, "life": 3 },
-    "spikes": { "width": 26, "height": 22, "offset": 35, "duration": 1.4, "riseTime": 0.16, "fallTime": 0.18 },
-    "dash": { "speedMultiplier": 3, "duration": 0.45 },
-    "jump": { "speed": 500, "gravity": 1350 }
+    "kinds": [
+      "shoot",
+      "spikes",
+      "dash",
+      "jump"
+    ],
+    "shot": {
+      "size": 10,
+      "speed": 210,
+      "life": 3
+    },
+    "spikes": {
+      "width": 26,
+      "height": 22,
+      "offset": 35,
+      "duration": 1.4,
+      "riseTime": 0.16,
+      "fallTime": 0.18
+    },
+    "dash": {
+      "speedMultiplier": 3,
+      "duration": 0.45
+    },
+    "jump": {
+      "speed": 500,
+      "gravity": 1350
+    }
   },
   "bossAbilities": {
     "count": 3,
     "interval": 2.6,
     "stunMultiplier": 0.5,
-    "kinds": ["shoot", "spikes", "dash", "jump"],
-    "shot": { "size": 16, "speed": 315, "life": 3.5, "count": 3, "spread": 0.22 },
-    "spikes": { "width": 42, "height": 34, "offset": 62, "count": 2, "spacing": 50, "duration": 1.7, "riseTime": 0.13, "fallTime": 0.18 },
-    "dash": { "speedMultiplier": 4, "duration": 0.65 },
-    "jump": { "speed": 650, "gravity": 1350 }
+    "kinds": [
+      "shoot",
+      "spikes",
+      "dash",
+      "jump"
+    ],
+    "shot": {
+      "size": 16,
+      "speed": 315,
+      "life": 3.5,
+      "count": 3,
+      "spread": 0.22
+    },
+    "spikes": {
+      "width": 42,
+      "height": 34,
+      "offset": 62,
+      "count": 2,
+      "spacing": 50,
+      "duration": 1.7,
+      "riseTime": 0.13,
+      "fallTime": 0.18
+    },
+    "dash": {
+      "speedMultiplier": 4,
+      "duration": 0.65
+    },
+    "jump": {
+      "speed": 650,
+      "gravity": 1350
+    }
   },
   "companionSkill": {
     "delay": 0.32,
@@ -179,7 +380,10 @@
     "speed": 360,
     "damage": 1,
     "stunDuration": 0.3,
-    "projectile": { "size": 14, "life": 2.5 }
+    "projectile": {
+      "size": 14,
+      "life": 2.5
+    }
   },
   "iceSkill": {
     "interval": 25,
@@ -190,7 +394,10 @@
     "damage": 1,
     "freezeDuration": 5,
     "stunDuration": 0.3,
-    "projectile": { "size": 24, "life": 2.5 }
+    "projectile": {
+      "size": 24,
+      "life": 2.5
+    }
   },
   "bowSkill": {
     "interval": 5,
@@ -203,7 +410,11 @@
     "speedTolerance": 90,
     "damage": 1,
     "stunDuration": 0.3,
-    "projectile": { "width": 10, "height": 6, "life": 2.6 }
+    "projectile": {
+      "width": 10,
+      "height": 6,
+      "life": 2.6
+    }
   },
   "coinMagnet": {
     "radius": 90,
@@ -219,55 +430,213 @@
     "gravity": 700
   },
   "cards": {
-    "chestArt": { "body": "#83583d", "trim": "#f5bf68", "hellBody": "#85364b", "hellTrim": "#ff687d" },
+    "chestArt": {
+      "body": "#83583d",
+      "trim": "#f5bf68",
+      "hellBody": "#85364b",
+      "hellTrim": "#ff687d"
+    },
     "choiceCount": 3,
     "confirmHoldSeconds": 0.5,
     "openingDuration": 1.2,
     "rewardBannerDuration": 2,
     "hellChance": 0.22,
-    "rarityWeights": { "common": 55, "rare": 30, "epic": 12, "legendary": 3 },
-    "rarityColors": { "common": "#b4c8d1", "rare": "#7ac9ff", "epic": "#c99aff", "legendary": "#ffcf6b", "hell": "#ff6d78" },
-    "rarityLabels": { "common": "ОБЫЧНАЯ", "rare": "РЕДКАЯ", "epic": "ЭПИЧЕСКАЯ", "legendary": "ЛЕГЕНДАРНАЯ", "hell": "АДСКАЯ" },
-    "uiText": { "opening": "СУНДУК ОТКРЫТ", "openingHint": "Выберите награду",
-      "reward": "ПОЛУЧЕНА КАРТА", "choose": "ВЫБЕРИТЕ КАРТУ",
+    "rarityWeights": {
+      "common": 55,
+      "rare": 30,
+      "epic": 12,
+      "legendary": 3
+    },
+    "rarityColors": {
+      "common": "#b4c8d1",
+      "rare": "#7ac9ff",
+      "epic": "#c99aff",
+      "legendary": "#ffcf6b",
+      "hell": "#ff6d78"
+    },
+    "rarityLabels": {
+      "common": "ОБЫЧНАЯ",
+      "rare": "РЕДКАЯ",
+      "epic": "ЭПИЧЕСКАЯ",
+      "legendary": "ЛЕГЕНДАРНАЯ",
+      "hell": "АДСКАЯ"
+    },
+    "uiText": {
+      "opening": "СУНДУК ОТКРЫТ",
+      "openingHint": "Выберите награду",
+      "reward": "ПОЛУЧЕНА КАРТА",
+      "choose": "ВЫБЕРИТЕ КАРТУ",
       "transform": "СУНДУК ПРЕВРАЩАЕТСЯ В АДСКИЙ",
-      "hell": "АДСКАЯ КАРТА", "accept": "Удерживайте ↑ или Space 0,5 секунды",
+      "hell": "АДСКАЯ КАРТА",
+      "accept": "Удерживайте ↑ или Space 0,5 секунды",
       "chooseHint": "← → выбор · ↑ / Space 0,5 с · ↓ реролл 0,5 с",
       "reroll": "↓ Сменить карты",
-      "level": "Уровень" },
+      "level": "Уровень"
+    },
     "entries": [
-      { "id": "health", "kind": "upgrade", "rarity": "common", "title": "Крепкое сердце", "description": "Макс. здоровье +1" },
-      { "id": "damage", "kind": "upgrade", "rarity": "rare", "title": "Острый удар", "description": "Урон +1" },
-      { "id": "speed", "kind": "upgrade", "rarity": "rare", "title": "Лёгкий шаг", "description": "Скорость ×1.5" },
-      { "id": "healing", "kind": "skill", "rarity": "common", "title": "Лечение", "description": "Автоматически лечит героя" },
-      { "id": "bow", "kind": "skill", "rarity": "common", "title": "Стрелы", "description": "Точность 15% / 40% / 100%" },
-      { "id": "sword", "kind": "skill", "rarity": "common", "title": "Меч", "description": "Короткий / обычный / двойной удар" },
-      { "id": "fireball", "kind": "skill", "rarity": "rare", "title": "Огненный шар", "description": "Один / три подряд / огненный круг" },
-      { "id": "ice", "kind": "skill", "rarity": "rare", "title": "Лёд", "description": "Осколок / катящийся шар / ледяной круг" },
-      { "id": "companion", "kind": "skill", "rarity": "epic", "title": "Компаньон", "description": "Союзник / умение I / умение II" },
-      { "id": "simplify", "kind": "world", "rarity": "rare", "title": "Упрощение", "description": "Враги: −1 HP и −1 умение; больше монет" },
-      { "id": "complicate", "kind": "world", "rarity": "epic", "title": "Усложнение", "description": "Враги: −1 HP и +1 умение" },
-      { "id": "reroll", "kind": "utility", "rarity": "rare", "title": "Новый расклад", "description": "+1 смена карт в следующих сундуках" },
-      { "id": "noBoss", "kind": "utility", "rarity": "legendary", "title": "Отмена босса", "description": "Босс исчезает; +15 монет" },
-      { "id": "blessing", "kind": "utility", "rarity": "legendary", "title": "Благословение", "description": "Адский сундук больше не появится" },
-      { "id": "fakeFlight", "kind": "fake", "rarity": "common", "title": "Полёт на секунду", "description": "На словах герой летает. Эффекта нет." },
-      { "id": "fakeLight", "kind": "fake", "rarity": "common", "title": "Скорость света", "description": "Предел скорости остаётся прежним." }
+      {
+        "id": "health",
+        "kind": "upgrade",
+        "rarity": "common",
+        "title": "Крепкое сердце",
+        "description": "Макс. здоровье +1"
+      },
+      {
+        "id": "damage",
+        "kind": "upgrade",
+        "rarity": "rare",
+        "title": "Острый удар",
+        "description": "Урон +1"
+      },
+      {
+        "id": "speed",
+        "kind": "upgrade",
+        "rarity": "rare",
+        "title": "Лёгкий шаг",
+        "description": "Скорость ×1.5"
+      },
+      {
+        "id": "healing",
+        "kind": "skill",
+        "rarity": "common",
+        "title": "Лечение",
+        "description": "Автоматически лечит героя"
+      },
+      {
+        "id": "bow",
+        "kind": "skill",
+        "rarity": "common",
+        "title": "Стрелы",
+        "description": "Точность 15% / 40% / 100%"
+      },
+      {
+        "id": "sword",
+        "kind": "skill",
+        "rarity": "common",
+        "title": "Меч",
+        "description": "Короткий / обычный / двойной удар"
+      },
+      {
+        "id": "fireball",
+        "kind": "skill",
+        "rarity": "rare",
+        "title": "Огненный шар",
+        "description": "Один / три подряд / огненный круг"
+      },
+      {
+        "id": "ice",
+        "kind": "skill",
+        "rarity": "rare",
+        "title": "Лёд",
+        "description": "Осколок / катящийся шар / ледяной круг"
+      },
+      {
+        "id": "companion",
+        "kind": "skill",
+        "rarity": "epic",
+        "title": "Компаньон",
+        "description": "Союзник / умение I / умение II"
+      },
+      {
+        "id": "simplify",
+        "kind": "world",
+        "rarity": "rare",
+        "title": "Упрощение",
+        "description": "Враги: −1 HP и −1 умение; больше монет"
+      },
+      {
+        "id": "complicate",
+        "kind": "world",
+        "rarity": "epic",
+        "title": "Усложнение",
+        "description": "Враги: −1 HP и +1 умение"
+      },
+      {
+        "id": "reroll",
+        "kind": "utility",
+        "rarity": "rare",
+        "title": "Новый расклад",
+        "description": "+1 смена карт в следующих сундуках"
+      },
+      {
+        "id": "noBoss",
+        "kind": "utility",
+        "rarity": "legendary",
+        "title": "Отмена босса",
+        "description": "Босс исчезает; +15 монет"
+      },
+      {
+        "id": "blessing",
+        "kind": "utility",
+        "rarity": "legendary",
+        "title": "Благословение",
+        "description": "Адский сундук больше не появится"
+      },
+      {
+        "id": "fakeFlight",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Полёт на секунду",
+        "description": "На словах герой летает. Эффекта нет."
+      },
+      {
+        "id": "fakeLight",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Скорость света",
+        "description": "Предел скорости остаётся прежним."
+      }
     ],
     "hellEntries": [
-      { "id": "wall", "title": "Стена преследования", "description": "Стена идёт от начала карты до финиша" },
-      { "id": "arrows", "title": "Дождь стрел", "description": "Сверху периодически падают стрелы" },
-      { "id": "holes", "title": "Провалы", "description": "В платформах случайно открываются дыры" },
-      { "id": "freeze", "title": "Ледяные цепи", "description": "Герой периодически замирает на секунду" },
-      { "id": "enemies", "title": "Гвардия ада", "description": "Враги получают умение и щит на 5 секунд" },
-      { "id": "spikes", "title": "Проклятые платформы", "description": "Платформы становятся шипами на 5 секунд" }
+      {
+        "id": "wall",
+        "title": "Стена преследования",
+        "description": "Стена идёт от начала карты до финиша"
+      },
+      {
+        "id": "arrows",
+        "title": "Дождь стрел",
+        "description": "Сверху периодически падают стрелы"
+      },
+      {
+        "id": "holes",
+        "title": "Провалы",
+        "description": "В платформах случайно открываются дыры"
+      },
+      {
+        "id": "freeze",
+        "title": "Ледяные цепи",
+        "description": "Герой периодически замирает на секунду"
+      },
+      {
+        "id": "enemies",
+        "title": "Гвардия ада",
+        "description": "Враги получают умение и щит на 5 секунд"
+      },
+      {
+        "id": "spikes",
+        "title": "Проклятые платформы",
+        "description": "Платформы становятся шипами на 5 секунд"
+      }
     ],
-    "hell": { "wallSpeed": 75, "arrowInterval": 1.6, "arrowCount": 5, "arrowSpacing": 46,
-      "arrowSpeed": 520, "arrowSize": 12,
-      "holeInterval": 3.5, "holeDuration": 2, "holeWidth": 58,
-      "freezeInterval": 7, "freezeDuration": 1,
-      "shieldInterval": 8, "shieldDuration": 5,
-      "spikeInterval": 5, "spikeDuration": 5,
-      "shake": 3 },
+    "hell": {
+      "wallSpeed": 75,
+      "arrowInterval": 1.6,
+      "arrowCount": 5,
+      "arrowSpacing": 46,
+      "arrowSpeed": 520,
+      "arrowSize": 12,
+      "holeInterval": 3.5,
+      "holeDuration": 2,
+      "holeWidth": 58,
+      "freezeInterval": 7,
+      "freezeDuration": 1,
+      "shieldInterval": 8,
+      "shieldDuration": 5,
+      "spikeInterval": 5,
+      "spikeDuration": 5,
+      "shake": 3
+    },
     "chestSize": 34,
     "transformDuration": 1.5
   },
@@ -275,16 +644,43 @@
     "generation": {
       "enabled": true,
       "mainPlatforms": 42,
-      "startPlatform": { "x": 45, "y": 460, "width": 255, "height": 24 },
-      "firstGap": [8, 20],
-      "gap": [12, 60],
-      "junctionGap": [18, 30],
-      "junctionExitGap": [120, 140],
+      "startPlatform": {
+        "x": 45,
+        "y": 460,
+        "width": 255,
+        "height": 24
+      },
+      "firstGap": [
+        8,
+        20
+      ],
+      "gap": [
+        12,
+        60
+      ],
+      "junctionGap": [
+        18,
+        30
+      ],
+      "junctionExitGap": [
+        120,
+        140
+      ],
       "maxGap": 140,
-      "platformWidth": [125, 220],
-      "junctionPlatformWidth": [145, 185],
+      "platformWidth": [
+        125,
+        220
+      ],
+      "junctionPlatformWidth": [
+        145,
+        185
+      ],
       "lowerPlatformWidth": 160,
-      "lowerOffsets": [40, 65, 90],
+      "lowerOffsets": [
+        40,
+        65,
+        90
+      ],
       "platformHeight": 24,
       "maxStepY": 90,
       "heightJitter": 22,
@@ -292,41 +688,192 @@
       "minY": -340,
       "maxY": 860,
       "heightProfiles": [
-          [
-            { "index": 0, "range": [460, 460] },
-            { "index": 8, "range": [-100, 120] },
-            { "index": 18, "range": [560, 780] },
-            { "index": 28, "range": [-160, 100] },
-            { "index": 41, "range": [-300, -60] }
-          ],
-          [
-            { "index": 0, "range": [460, 460] },
-            { "index": 8, "range": [600, 780] },
-            { "index": 18, "range": [-180, 80] },
-            { "index": 28, "range": [520, 780] },
-            { "index": 41, "range": [-220, 80] }
-          ],
-          [
-            { "index": 0, "range": [460, 460] },
-            { "index": 8, "range": [120, 300] },
-            { "index": 18, "range": [-240, -50] },
-            { "index": 28, "range": [300, 600] },
-            { "index": 41, "range": [-250, 100] }
-          ],
-          [
-            { "index": 0, "range": [460, 460] },
-            { "index": 8, "range": [550, 760] },
-            { "index": 18, "range": [680, 840] },
-            { "index": 28, "range": [100, 320] },
-            { "index": 41, "range": [-200, 40] }
-          ]
+        [
+          {
+            "index": 0,
+            "range": [
+              460,
+              460
+            ]
+          },
+          {
+            "index": 8,
+            "range": [
+              -100,
+              120
+            ]
+          },
+          {
+            "index": 18,
+            "range": [
+              560,
+              780
+            ]
+          },
+          {
+            "index": 28,
+            "range": [
+              -160,
+              100
+            ]
+          },
+          {
+            "index": 41,
+            "range": [
+              -300,
+              -60
+            ]
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "range": [
+              460,
+              460
+            ]
+          },
+          {
+            "index": 8,
+            "range": [
+              600,
+              780
+            ]
+          },
+          {
+            "index": 18,
+            "range": [
+              -180,
+              80
+            ]
+          },
+          {
+            "index": 28,
+            "range": [
+              520,
+              780
+            ]
+          },
+          {
+            "index": 41,
+            "range": [
+              -220,
+              80
+            ]
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "range": [
+              460,
+              460
+            ]
+          },
+          {
+            "index": 8,
+            "range": [
+              120,
+              300
+            ]
+          },
+          {
+            "index": 18,
+            "range": [
+              -240,
+              -50
+            ]
+          },
+          {
+            "index": 28,
+            "range": [
+              300,
+              600
+            ]
+          },
+          {
+            "index": 41,
+            "range": [
+              -250,
+              100
+            ]
+          }
+        ],
+        [
+          {
+            "index": 0,
+            "range": [
+              460,
+              460
+            ]
+          },
+          {
+            "index": 8,
+            "range": [
+              550,
+              760
+            ]
+          },
+          {
+            "index": 18,
+            "range": [
+              680,
+              840
+            ]
+          },
+          {
+            "index": 28,
+            "range": [
+              100,
+              320
+            ]
+          },
+          {
+            "index": 41,
+            "range": [
+              -200,
+              40
+            ]
+          }
+        ]
       ],
-      "junctionZones": [[8, 10], [15, 17], [23, 25], [32, 34]],
-      "junctionCount": [3, 4],
+      "junctionZones": [
+        [
+          8,
+          10
+        ],
+        [
+          15,
+          17
+        ],
+        [
+          23,
+          25
+        ],
+        [
+          32,
+          34
+        ]
+      ],
+      "junctionCount": [
+        3,
+        4
+      ],
       "junctionSpan": 4,
-      "junctionPatterns": ["fork", "ridge", "canyon", "fork"],
-      "upperRise": [70, 78],
-      "lowerDrop": [70, 78],
+      "junctionPatterns": [
+        "fork",
+        "ridge",
+        "canyon",
+        "fork"
+      ],
+      "upperRise": [
+        70,
+        78
+      ],
+      "lowerDrop": [
+        70,
+        78
+      ],
       "ridgePeak": 22,
       "canyonDepth": 28,
       "backtrackWidth": 70,
@@ -334,31 +881,243 @@
       "backtrackHighRise": 90,
       "backtrackEndpointRise": 30,
       "backtrackEndpointOffsetX": 100,
-      "backtrackRewardOffsets": [8, 38],
+      "backtrackRewardOffsets": [
+        8,
+        38
+      ],
       "coinOffsetX": 22,
       "coinLift": 38,
       "coinSize": 24,
-      "enemyZones": [[5, 5], [8, 10], [12, 14], [16, 18], [20, 22], [24, 26], [28, 30], [33, 36], [38, 40]],
+      "enemyZones": [
+        [
+          5,
+          5
+        ],
+        [
+          8,
+          10
+        ],
+        [
+          12,
+          14
+        ],
+        [
+          16,
+          18
+        ],
+        [
+          20,
+          22
+        ],
+        [
+          24,
+          26
+        ],
+        [
+          28,
+          30
+        ],
+        [
+          33,
+          36
+        ],
+        [
+          38,
+          40
+        ]
+      ],
       "enemy": {
         "width": 30,
         "height": 26,
         "edgeInset": 18,
-        "speed": [42, 68],
-        "health": [1, 2, 1, 2, 3, 1, 2, 3, 2],
-        "abilityIntervalTenths": [27, 36]
+        "speed": [
+          42,
+          68
+        ],
+        "health": [
+          1,
+          2,
+          1,
+          2,
+          3,
+          1,
+          2,
+          3,
+          2
+        ],
+        "abilityIntervalTenths": [
+          27,
+          36
+        ]
       },
-      "hazardZones": [[2, 3], [9, 10], [15, 17], [22, 24], [30, 32]],
-      "hazard": { "width": 30, "height": 20, "edgeInset": 10 },
-      "risingZones": [[6, 6], [14, 15], [21, 23], [29, 31], [37, 39]],
-      "rising": { "width": 28, "height": 21, "edgeInset": 12, "periods": [2.4, 3.1, 3.8, 4.4, 3.5], "activeDuration": 1.05, "riseTime": 0.18, "fallTime": 0.18 },
-      "hangingZones": [[12, 13], [24, 26], [32, 33], [36, 38]],
-      "hanging": { "width": 40, "height": 27, "edgeInset": 15 },
-      "boostZones": { "heal": [2, 6], "speed": [15, 21], "damage": [30, 37] },
-      "chestIndices": [4, 7, 11, 19, 27, 34, 40],
-      "surfaceZones": { "swamp": [[3, 6], [18, 21], [35, 38]], "ice": [[11, 14], [26, 29]] },
-      "bossRoute": { "steps": 3, "stepWidth": 170, "gap": 55, "firstRise": 90, "rise": 65, "arenaWidth": 680, "arenaGap": 60, "arenaRise": 65, "bossWidth": 76, "bossHeight": 66, "bossHealth": 15, "bossSpeed": 72, "bossOffsetX": 230 },
-      "finishRoute": { "entryDrop": [45, 65], "steps": 5, "stepWidth": 170, "gap": 55, "platformWidth": 260, "arenaExitGap": 55, "goalInset": 20 },
-      "pickup": { "size": 28, "lift": 46, "edgeInset": 15 },
+      "hazardZones": [
+        [
+          2,
+          3
+        ],
+        [
+          9,
+          10
+        ],
+        [
+          15,
+          17
+        ],
+        [
+          22,
+          24
+        ],
+        [
+          30,
+          32
+        ]
+      ],
+      "hazard": {
+        "width": 30,
+        "height": 20,
+        "edgeInset": 10
+      },
+      "risingZones": [
+        [
+          6,
+          6
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          21,
+          23
+        ],
+        [
+          29,
+          31
+        ],
+        [
+          37,
+          39
+        ]
+      ],
+      "rising": {
+        "width": 28,
+        "height": 21,
+        "edgeInset": 12,
+        "periods": [
+          2.4,
+          3.1,
+          3.8,
+          4.4,
+          3.5
+        ],
+        "activeDuration": 1.05,
+        "riseTime": 0.18,
+        "fallTime": 0.18
+      },
+      "hangingZones": [
+        [
+          12,
+          13
+        ],
+        [
+          24,
+          26
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          36,
+          38
+        ]
+      ],
+      "hanging": {
+        "width": 40,
+        "height": 27,
+        "edgeInset": 15
+      },
+      "boostZones": {
+        "heal": [
+          2,
+          6
+        ],
+        "speed": [
+          15,
+          21
+        ],
+        "damage": [
+          30,
+          37
+        ]
+      },
+      "chestIndices": [
+        4,
+        7,
+        11,
+        19,
+        27,
+        34,
+        40
+      ],
+      "surfaceZones": {
+        "swamp": [
+          [
+            3,
+            6
+          ],
+          [
+            18,
+            21
+          ],
+          [
+            35,
+            38
+          ]
+        ],
+        "ice": [
+          [
+            11,
+            14
+          ],
+          [
+            26,
+            29
+          ]
+        ]
+      },
+      "bossRoute": {
+        "steps": 3,
+        "stepWidth": 170,
+        "gap": 55,
+        "firstRise": 90,
+        "rise": 65,
+        "arenaWidth": 680,
+        "arenaGap": 60,
+        "arenaRise": 65,
+        "bossWidth": 76,
+        "bossHeight": 66,
+        "bossHealth": 15,
+        "bossSpeed": 72,
+        "bossOffsetX": 230
+      },
+      "finishRoute": {
+        "entryDrop": [
+          45,
+          65
+        ],
+        "steps": 5,
+        "stepWidth": 170,
+        "gap": 55,
+        "platformWidth": 260,
+        "arenaExitGap": 55,
+        "goalInset": 20
+      },
+      "pickup": {
+        "size": 28,
+        "lift": 46,
+        "edgeInset": 15
+      },
       "goalEdgeInset": 12,
       "topPadding": 180,
       "bottomPadding": 330,
@@ -368,133 +1127,738 @@
     "top": -420,
     "bottom": 1120,
     "platforms": [
-      { "x": 45, "y": 460, "width": 255, "height": 24 },
-      { "x": 240, "y": 380, "width": 145, "height": 24 },
-      { "x": 410, "y": 300, "width": 170, "height": 24 },
-      { "x": 580, "y": 220, "width": 135, "height": 24 },
-      { "x": 750, "y": 140, "width": 150, "height": 24 },
-      { "x": 930, "y": 230, "width": 170, "height": 24 },
-      { "x": 1120, "y": 315, "width": 125, "height": 24 },
-      { "x": 1320, "y": 390, "width": 190, "height": 24 },
-      { "x": 1530, "y": 330, "width": 160, "height": 24 },
-      { "x": 1730, "y": 260, "width": 130, "height": 24 },
-      { "x": 1930, "y": 190, "width": 200, "height": 24 },
-      { "x": 2140, "y": 260, "width": 135, "height": 24 },
-      { "x": 2330, "y": 190, "width": 190, "height": 24 },
-      { "x": 2520, "y": 280, "width": 170, "height": 24 },
-      { "x": 2710, "y": 370, "width": 155, "height": 24 },
-      { "x": 2900, "y": 460, "width": 220, "height": 24 },
-      { "x": 3090, "y": 550, "width": 125, "height": 24 },
-      { "x": 3280, "y": 640, "width": 250, "height": 24 },
-      { "x": 3470, "y": 730, "width": 170, "height": 24 },
-      { "x": 3660, "y": 820, "width": 190, "height": 24 },
-      { "x": 3860, "y": 730, "width": 150, "height": 24 },
-      { "x": 4050, "y": 640, "width": 145, "height": 24 },
-      { "x": 4240, "y": 550, "width": 170, "height": 24 },
-      { "x": 4430, "y": 460, "width": 145, "height": 24 },
-      { "x": 4620, "y": 370, "width": 170, "height": 24 },
-      { "x": 4810, "y": 280, "width": 150, "height": 24 },
-      { "x": 5000, "y": 190, "width": 170, "height": 24 },
-      { "x": 5190, "y": 100, "width": 125, "height": 24 },
-      { "x": 5380, "y": 10, "width": 170, "height": 24 },
-      { "x": 5570, "y": -80, "width": 160, "height": 24 },
-      { "x": 5760, "y": -170, "width": 170, "height": 24 },
-      { "x": 5950, "y": -260, "width": 190, "height": 24 },
-      { "x": 2670, "y": 205, "width": 140, "height": 24 },
-      { "x": 2865, "y": 285, "width": 130, "height": 24 },
-      { "x": 3150, "y": 390, "width": 130, "height": 24 },
-      { "x": 3300, "y": 480, "width": 100, "height": 24 },
-      { "x": 4730, "y": 260, "width": 75, "height": 24 },
-      { "x": 4890, "y": 210, "width": 105, "height": 24 },
-      { "x": 900, "y": 40, "width": 125, "height": 24 },
-      { "x": 1040, "y": -40, "width": 120, "height": 24 },
-      { "x": 1180, "y": -120, "width": 110, "height": 24, "fake": true },
-      { "x": 3830, "y": 920, "width": 150, "height": 24 },
-      { "x": 3970, "y": 1000, "width": 140, "height": 24 },
-      { "x": 4140, "y": 1050, "width": 110, "height": 24, "fake": true },
-      { "x": 6150, "y": -170, "width": 160, "height": 24 },
-      { "x": 6340, "y": -80, "width": 170, "height": 24 },
-      { "x": 6530, "y": 10, "width": 160, "height": 24 },
-      { "x": 6720, "y": 100, "width": 170, "height": 24 },
-      { "x": 6910, "y": 190, "width": 175, "height": 24 },
-      { "x": 7100, "y": 100, "width": 160, "height": 24 },
-      { "x": 7290, "y": 10, "width": 170, "height": 24 },
-      { "x": 7480, "y": -80, "width": 160, "height": 24 },
-      { "x": 7670, "y": -170, "width": 170, "height": 24 },
-      { "x": 7860, "y": -260, "width": 175, "height": 24 }
+      {
+        "x": 45,
+        "y": 460,
+        "width": 255,
+        "height": 24
+      },
+      {
+        "x": 240,
+        "y": 380,
+        "width": 145,
+        "height": 24
+      },
+      {
+        "x": 410,
+        "y": 300,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 580,
+        "y": 220,
+        "width": 135,
+        "height": 24
+      },
+      {
+        "x": 750,
+        "y": 140,
+        "width": 150,
+        "height": 24
+      },
+      {
+        "x": 930,
+        "y": 230,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 1120,
+        "y": 315,
+        "width": 125,
+        "height": 24
+      },
+      {
+        "x": 1320,
+        "y": 390,
+        "width": 190,
+        "height": 24
+      },
+      {
+        "x": 1530,
+        "y": 330,
+        "width": 160,
+        "height": 24
+      },
+      {
+        "x": 1730,
+        "y": 260,
+        "width": 130,
+        "height": 24
+      },
+      {
+        "x": 1930,
+        "y": 190,
+        "width": 200,
+        "height": 24
+      },
+      {
+        "x": 2140,
+        "y": 260,
+        "width": 135,
+        "height": 24
+      },
+      {
+        "x": 2330,
+        "y": 190,
+        "width": 190,
+        "height": 24
+      },
+      {
+        "x": 2520,
+        "y": 280,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 2710,
+        "y": 370,
+        "width": 155,
+        "height": 24
+      },
+      {
+        "x": 2900,
+        "y": 460,
+        "width": 220,
+        "height": 24
+      },
+      {
+        "x": 3090,
+        "y": 550,
+        "width": 125,
+        "height": 24
+      },
+      {
+        "x": 3280,
+        "y": 640,
+        "width": 250,
+        "height": 24
+      },
+      {
+        "x": 3470,
+        "y": 730,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 3660,
+        "y": 820,
+        "width": 190,
+        "height": 24
+      },
+      {
+        "x": 3860,
+        "y": 730,
+        "width": 150,
+        "height": 24
+      },
+      {
+        "x": 4050,
+        "y": 640,
+        "width": 145,
+        "height": 24
+      },
+      {
+        "x": 4240,
+        "y": 550,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 4430,
+        "y": 460,
+        "width": 145,
+        "height": 24
+      },
+      {
+        "x": 4620,
+        "y": 370,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 4810,
+        "y": 280,
+        "width": 150,
+        "height": 24
+      },
+      {
+        "x": 5000,
+        "y": 190,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 5190,
+        "y": 100,
+        "width": 125,
+        "height": 24
+      },
+      {
+        "x": 5380,
+        "y": 10,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 5570,
+        "y": -80,
+        "width": 160,
+        "height": 24
+      },
+      {
+        "x": 5760,
+        "y": -170,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 5950,
+        "y": -260,
+        "width": 190,
+        "height": 24
+      },
+      {
+        "x": 2670,
+        "y": 205,
+        "width": 140,
+        "height": 24
+      },
+      {
+        "x": 2865,
+        "y": 285,
+        "width": 130,
+        "height": 24
+      },
+      {
+        "x": 3150,
+        "y": 390,
+        "width": 130,
+        "height": 24
+      },
+      {
+        "x": 3300,
+        "y": 480,
+        "width": 100,
+        "height": 24
+      },
+      {
+        "x": 4730,
+        "y": 260,
+        "width": 75,
+        "height": 24
+      },
+      {
+        "x": 4890,
+        "y": 210,
+        "width": 105,
+        "height": 24
+      },
+      {
+        "x": 900,
+        "y": 40,
+        "width": 125,
+        "height": 24
+      },
+      {
+        "x": 1040,
+        "y": -40,
+        "width": 120,
+        "height": 24
+      },
+      {
+        "x": 1180,
+        "y": -120,
+        "width": 110,
+        "height": 24,
+        "fake": true
+      },
+      {
+        "x": 3830,
+        "y": 920,
+        "width": 150,
+        "height": 24
+      },
+      {
+        "x": 3970,
+        "y": 1000,
+        "width": 140,
+        "height": 24
+      },
+      {
+        "x": 4140,
+        "y": 1050,
+        "width": 110,
+        "height": 24,
+        "fake": true
+      },
+      {
+        "x": 6150,
+        "y": -170,
+        "width": 160,
+        "height": 24
+      },
+      {
+        "x": 6340,
+        "y": -80,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 6530,
+        "y": 10,
+        "width": 160,
+        "height": 24
+      },
+      {
+        "x": 6720,
+        "y": 100,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 6910,
+        "y": 190,
+        "width": 175,
+        "height": 24
+      },
+      {
+        "x": 7100,
+        "y": 100,
+        "width": 160,
+        "height": 24
+      },
+      {
+        "x": 7290,
+        "y": 10,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 7480,
+        "y": -80,
+        "width": 160,
+        "height": 24
+      },
+      {
+        "x": 7670,
+        "y": -170,
+        "width": 170,
+        "height": 24
+      },
+      {
+        "x": 7860,
+        "y": -260,
+        "width": 175,
+        "height": 24
+      }
     ],
     "coins": [
-      { "x": 268, "y": 343, "width": 24, "height": 24 },
-      { "x": 443, "y": 263, "width": 24, "height": 24 },
-      { "x": 613, "y": 183, "width": 24, "height": 24 },
-      { "x": 965, "y": 193, "width": 24, "height": 24 },
-      { "x": 1155, "y": 278, "width": 24, "height": 24 },
-      { "x": 1355, "y": 353, "width": 24, "height": 24 },
-      { "x": 1565, "y": 293, "width": 24, "height": 24 },
-      { "x": 1765, "y": 223, "width": 24, "height": 24 },
-      { "x": 1965, "y": 153, "width": 24, "height": 24 },
-      { "x": 2175, "y": 223, "width": 24, "height": 24 },
-      { "x": 2365, "y": 153, "width": 24, "height": 24 },
-      { "x": 2555, "y": 243, "width": 24, "height": 24 },
-      { "x": 3095, "y": 423, "width": 24, "height": 24 },
-      { "x": 3500, "y": 603, "width": 24, "height": 24 },
-      { "x": 3695, "y": 783, "width": 24, "height": 24 },
-      { "x": 3895, "y": 693, "width": 24, "height": 24 },
-      { "x": 4275, "y": 513, "width": 24, "height": 24 },
-      { "x": 4655, "y": 333, "width": 24, "height": 24 },
-      { "x": 5035, "y": 153, "width": 24, "height": 24 },
-      { "x": 5415, "y": -27, "width": 24, "height": 24 },
-      { "x": 5795, "y": -207, "width": 24, "height": 24 },
-      { "x": 5985, "y": -297, "width": 24, "height": 24 },
-      { "x": 6190, "y": -207, "width": 24, "height": 24 },
-      { "x": 6380, "y": -117, "width": 24, "height": 24 },
-      { "x": 6570, "y": -27, "width": 24, "height": 24 },
-      { "x": 6760, "y": 63, "width": 24, "height": 24 },
-      { "x": 6950, "y": 153, "width": 24, "height": 24 },
-      { "x": 7140, "y": 63, "width": 24, "height": 24 },
-      { "x": 7330, "y": -27, "width": 24, "height": 24 },
-      { "x": 7520, "y": -117, "width": 24, "height": 24 },
-      { "x": 7710, "y": -207, "width": 24, "height": 24 },
-      { "x": 7900, "y": -297, "width": 24, "height": 24 }
+      {
+        "x": 268,
+        "y": 343,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 443,
+        "y": 263,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 613,
+        "y": 183,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 965,
+        "y": 193,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 1155,
+        "y": 278,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 1355,
+        "y": 353,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 1565,
+        "y": 293,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 1765,
+        "y": 223,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 1965,
+        "y": 153,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 2175,
+        "y": 223,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 2365,
+        "y": 153,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 2555,
+        "y": 243,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 3095,
+        "y": 423,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 3500,
+        "y": 603,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 3695,
+        "y": 783,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 3895,
+        "y": 693,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 4275,
+        "y": 513,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 4655,
+        "y": 333,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 5035,
+        "y": 153,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 5415,
+        "y": -27,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 5795,
+        "y": -207,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 5985,
+        "y": -297,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 6190,
+        "y": -207,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 6380,
+        "y": -117,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 6570,
+        "y": -27,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 6760,
+        "y": 63,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 6950,
+        "y": 153,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 7140,
+        "y": 63,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 7330,
+        "y": -27,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 7520,
+        "y": -117,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 7710,
+        "y": -207,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "x": 7900,
+        "y": -297,
+        "width": 24,
+        "height": 24
+      }
     ],
     "hazard": [
-      { "x": 343, "y": 360, "width": 32, "height": 20 },
-      { "x": 1050, "y": 210, "width": 32, "height": 20 },
-      { "x": 1430, "y": 370, "width": 32, "height": 20 },
-      { "x": 2040, "y": 170, "width": 32, "height": 20 }
+      {
+        "x": 343,
+        "y": 360,
+        "width": 32,
+        "height": 20
+      },
+      {
+        "x": 1050,
+        "y": 210,
+        "width": 32,
+        "height": 20
+      },
+      {
+        "x": 1430,
+        "y": 370,
+        "width": 32,
+        "height": 20
+      },
+      {
+        "x": 2040,
+        "y": 170,
+        "width": 32,
+        "height": 20
+      }
     ],
     "risingSpikes": [
-      { "platformIndex": 6, "offsetX": 90, "width": 24, "maxHeight": 20, "period": 2.4, "activeDuration": 0.95, "riseTime": 0.15, "fallTime": 0.15, "phase": 0.4 },
-      { "platformIndex": 13, "offsetX": 120, "width": 30, "maxHeight": 22, "period": 3.1, "activeDuration": 1.05, "riseTime": 0.18, "fallTime": 0.18, "phase": 1.1 },
-      { "platformIndex": 20, "offsetX": 110, "width": 30, "maxHeight": 20, "period": 3.8, "activeDuration": 1.1, "riseTime": 0.18, "fallTime": 0.18, "phase": 0.7 },
-      { "platformIndex": 25, "offsetX": 90, "width": 30, "maxHeight": 20, "period": 4.4, "activeDuration": 1.2, "riseTime": 0.2, "fallTime": 0.2, "phase": 2.0 }
+      {
+        "platformIndex": 6,
+        "offsetX": 90,
+        "width": 24,
+        "maxHeight": 20,
+        "period": 2.4,
+        "activeDuration": 0.95,
+        "riseTime": 0.15,
+        "fallTime": 0.15,
+        "phase": 0.4
+      },
+      {
+        "platformIndex": 13,
+        "offsetX": 120,
+        "width": 30,
+        "maxHeight": 22,
+        "period": 3.1,
+        "activeDuration": 1.05,
+        "riseTime": 0.18,
+        "fallTime": 0.18,
+        "phase": 1.1
+      },
+      {
+        "platformIndex": 20,
+        "offsetX": 110,
+        "width": 30,
+        "maxHeight": 20,
+        "period": 3.8,
+        "activeDuration": 1.1,
+        "riseTime": 0.18,
+        "fallTime": 0.18,
+        "phase": 0.7
+      },
+      {
+        "platformIndex": 25,
+        "offsetX": 90,
+        "width": 30,
+        "maxHeight": 20,
+        "period": 4.4,
+        "activeDuration": 1.2,
+        "riseTime": 0.2,
+        "fallTime": 0.2,
+        "phase": 2.0
+      }
     ],
     "hangingSpikes": [
-      { "platformIndex": 5, "offsetX": 80, "width": 40, "height": 26 },
-      { "platformIndex": 10, "offsetX": 120, "width": 40, "height": 26 },
-      { "platformIndex": 17, "offsetX": 120, "width": 50, "height": 28 },
-      { "platformIndex": 22, "offsetX": 90, "width": 40, "height": 26 },
-      { "platformIndex": 27, "offsetX": 70, "width": 35, "height": 26 }
+      {
+        "platformIndex": 5,
+        "offsetX": 80,
+        "width": 40,
+        "height": 26
+      },
+      {
+        "platformIndex": 10,
+        "offsetX": 120,
+        "width": 40,
+        "height": 26
+      },
+      {
+        "platformIndex": 17,
+        "offsetX": 120,
+        "width": 50,
+        "height": 28
+      },
+      {
+        "platformIndex": 22,
+        "offsetX": 90,
+        "width": 40,
+        "height": 26
+      },
+      {
+        "platformIndex": 27,
+        "offsetX": 70,
+        "width": 35,
+        "height": 26
+      }
     ],
     "enemies": [
-      { "platformIndex": 4, "x": 795, "width": 30, "height": 26, "speed": 48, "direction": 1, "maxHealth": 1 },
-      { "platformIndex": 14, "x": 2750, "width": 30, "height": 26, "speed": 55, "direction": -1, "maxHealth": 2 },
-      { "platformIndex": 18, "x": 3520, "width": 30, "height": 26, "speed": 62, "direction": 1, "maxHealth": 3 },
-      { "platformIndex": 22, "x": 4330, "width": 30, "height": 26, "speed": 58, "direction": -1, "maxHealth": 2 },
-      { "platformIndex": 29, "x": 5620, "width": 30, "height": 26, "speed": 52, "direction": 1, "maxHealth": 4 },
-      { "platformIndex": 44, "x": 6220, "width": 30, "height": 26, "speed": 55, "direction": -1, "maxHealth": 2, "abilityInterval": 2.7 },
-      { "platformIndex": 48, "x": 7000, "width": 30, "height": 26, "speed": 65, "direction": 1, "maxHealth": 3, "abilityInterval": 3.5 },
-      { "platformIndex": 50, "x": 7380, "width": 30, "height": 26, "speed": 58, "direction": -1, "maxHealth": 3, "abilityInterval": 2.9 },
-      { "platformIndex": 52, "x": 7750, "width": 30, "height": 26, "speed": 68, "direction": 1, "maxHealth": 4, "abilityInterval": 3.2 }
+      {
+        "platformIndex": 4,
+        "x": 795,
+        "width": 30,
+        "height": 26,
+        "speed": 48,
+        "direction": 1,
+        "maxHealth": 1
+      },
+      {
+        "platformIndex": 14,
+        "x": 2750,
+        "width": 30,
+        "height": 26,
+        "speed": 55,
+        "direction": -1,
+        "maxHealth": 2
+      },
+      {
+        "platformIndex": 18,
+        "x": 3520,
+        "width": 30,
+        "height": 26,
+        "speed": 62,
+        "direction": 1,
+        "maxHealth": 3
+      },
+      {
+        "platformIndex": 22,
+        "x": 4330,
+        "width": 30,
+        "height": 26,
+        "speed": 58,
+        "direction": -1,
+        "maxHealth": 2
+      },
+      {
+        "platformIndex": 29,
+        "x": 5620,
+        "width": 30,
+        "height": 26,
+        "speed": 52,
+        "direction": 1,
+        "maxHealth": 4
+      },
+      {
+        "platformIndex": 44,
+        "x": 6220,
+        "width": 30,
+        "height": 26,
+        "speed": 55,
+        "direction": -1,
+        "maxHealth": 2,
+        "abilityInterval": 2.7
+      },
+      {
+        "platformIndex": 48,
+        "x": 7000,
+        "width": 30,
+        "height": 26,
+        "speed": 65,
+        "direction": 1,
+        "maxHealth": 3,
+        "abilityInterval": 3.5
+      },
+      {
+        "platformIndex": 50,
+        "x": 7380,
+        "width": 30,
+        "height": 26,
+        "speed": 58,
+        "direction": -1,
+        "maxHealth": 3,
+        "abilityInterval": 2.9
+      },
+      {
+        "platformIndex": 52,
+        "x": 7750,
+        "width": 30,
+        "height": 26,
+        "speed": 68,
+        "direction": 1,
+        "maxHealth": 4,
+        "abilityInterval": 3.2
+      }
     ],
-    "goal": { "x": 7950, "y": -356, "width": 80, "height": 96, "portalOffsetY": 38, "portalRadius": 27, "openFraction": 0.8 }
+    "goal": {
+      "x": 7950,
+      "y": -356,
+      "width": 80,
+      "height": 96,
+      "portalOffsetY": 38,
+      "portalRadius": 27,
+      "openFraction": 0.8
+    }
   },
   "scene": {
-    "earthOpacity": 0.62,
+    "earthOpacity": 1,
     "earthTileSize": 72,
     "background": {
-      "forestSpeed": 0.35, "templeSpeed": 0.65, "foregroundSpeed": 1,
-      "transitionStart": 0.42, "transitionLength": 0.4, "foregroundOpacity": 0.46
+      "forestSpeed": 0.35,
+      "templeSpeed": 0.65,
+      "foregroundSpeed": 1,
+      "transitionStart": 0.42,
+      "transitionLength": 0.4,
+      "foregroundOpacity": 1
     },
     "platformShadow": "#2c3d2d",
     "platformTop": "#70a356",
@@ -502,7 +1866,10 @@
     "platformTopSwamp": "#677d48",
     "platformFace": "#786e54",
     "platformTopHeight": 8,
-    "platformShadowOffset": { "x": 3, "y": 7 },
+    "platformShadowOffset": {
+      "x": 3,
+      "y": 7
+    },
     "fakePlatformOpacity": 1,
     "fakePlatformCrack": "#e7d9a7",
     "hazardColor": "#be9b5f",
@@ -568,9 +1935,9 @@
     "goalPortal": {
       "font": "Alice, serif",
       "coreRadius": 20,
-      "ringRadius": 34,
-      "ringWidth": 5,
-      "markerRadius": 5,
+      "ringRadius": 16,
+      "ringWidth": 3,
+      "markerRadius": 2.5,
       "stemWidth": 10,
       "pedestalWidth": 72,
       "pedestalHeight": 18,
@@ -590,12 +1957,26 @@
       "marker80": "#82ffe0",
       "text": "#ffffff",
       "markers": [
-        { "fraction": 0.4, "color": "marker40" },
-        { "fraction": 0.6, "color": "marker60" },
-        { "fraction": 0.8, "color": "marker80" }
+        {
+          "fraction": 0.4,
+          "color": "marker40"
+        },
+        {
+          "fraction": 0.6,
+          "color": "marker60"
+        },
+        {
+          "fraction": 0.8,
+          "color": "marker80"
+        }
       ]
     },
-    "hell": { "wall": "#ff526f", "behindWall": "#000000", "arrow": "#ffb2bd", "spike": "#f2689a" }
+    "hell": {
+      "wall": "#ff526f",
+      "behindWall": "#000000",
+      "arrow": "#ffb2bd",
+      "spike": "#f2689a"
+    }
   },
   "ui": {
     "font": "Alice, serif",
@@ -612,8 +1993,18 @@
       "touch": "rgba(38, 59, 45, 0.75)"
     },
     "counters": {
-      "score": { "x": 20, "y": 18, "width": 132, "height": 56 },
-      "best": { "x": 164, "y": 18, "width": 132, "height": 56 }
+      "score": {
+        "x": 20,
+        "y": 18,
+        "width": 132,
+        "height": 56
+      },
+      "best": {
+        "x": 164,
+        "y": 18,
+        "width": 132,
+        "height": 56
+      }
     },
     "skills": {
       "size": 48,
@@ -646,22 +2037,79 @@
       }
     },
     "icons": {
-      "pause": { "x": 830, "y": 18, "width": 52, "height": 52 },
-      "sound": { "x": 768, "y": 18, "width": 52, "height": 52 },
-      "restart": { "x": 892, "y": 18, "width": 52, "height": 52 }
+      "pause": {
+        "x": 830,
+        "y": 18,
+        "width": 52,
+        "height": 52
+      },
+      "sound": {
+        "x": 768,
+        "y": 18,
+        "width": 52,
+        "height": 52
+      },
+      "restart": {
+        "x": 892,
+        "y": 18,
+        "width": 52,
+        "height": 52
+      }
     },
     "overlay": {
-      "panel": { "x": 250, "y": 130, "width": 460, "height": 280 },
-      "button": { "x": 350, "y": 332, "width": 260, "height": 54 }
+      "panel": {
+        "x": 250,
+        "y": 130,
+        "width": 460,
+        "height": 280
+      },
+      "button": {
+        "x": 350,
+        "y": 332,
+        "width": 260,
+        "height": 54
+      }
     },
-    "cards": { "x": 104, "y": 130, "width": 232, "height": 252, "gap": 28,
-      "reroll": { "x": 370, "y": 410, "width": 220, "height": 48 },
-      "colors": { "veil": "rgba(8, 15, 30, 0.88)", "panel": "#102940", "text": "#ffffff",
-        "description": "#e1edf4", "reroll": "#327987", "progressTrack": "#29465a" } },
+    "cards": {
+      "x": 104,
+      "y": 130,
+      "width": 232,
+      "height": 252,
+      "gap": 28,
+      "reroll": {
+        "x": 370,
+        "y": 410,
+        "width": 220,
+        "height": 48
+      },
+      "colors": {
+        "veil": "rgba(8, 15, 30, 0.88)",
+        "panel": "#102940",
+        "text": "#ffffff",
+        "description": "#e1edf4",
+        "reroll": "#327987",
+        "progressTrack": "#29465a"
+      }
+    },
     "touch": {
-      "left": { "x": 22, "y": 426, "width": 128, "height": 78 },
-      "right": { "x": 162, "y": 426, "width": 128, "height": 78 },
-      "jump": { "x": 800, "y": 426, "width": 138, "height": 78 }
+      "left": {
+        "x": 22,
+        "y": 426,
+        "width": 128,
+        "height": 78
+      },
+      "right": {
+        "x": 162,
+        "y": 426,
+        "width": 128,
+        "height": 78
+      },
+      "jump": {
+        "x": 800,
+        "y": 426,
+        "width": 138,
+        "height": 78
+      }
     },
     "hintY": 528
   }

@@ -1,5 +1,3 @@
-import { drawAtlasCell } from './sprites.js';
-
 export function drawHealingBeam(ctx, player, camera, skill, image) {
   if (skill.beamTime <= 0) return;
   const { art, beamDuration } = skill.settings;
@@ -8,7 +6,10 @@ export function drawHealingBeam(ctx, player, camera, skill, image) {
   const bottom = player.y + player.height / 2;
   ctx.save();
   ctx.globalAlpha = skill.beamTime / beamDuration;
-  drawAtlasCell(ctx, image, 2, 1, x - art.beamWidth / 2, top,
-    art.beamWidth, Math.max(1, bottom - top));
+  const length = Math.max(1, bottom - top);
+  ctx.translate(x + art.beamWidth / 2, top);
+  ctx.rotate(Math.PI / 2);
+  ctx.drawImage(image[1][2], 0, 0, image[1][2].width, image[1][2].height,
+    0, 0, length, art.beamWidth);
   ctx.restore();
 }
