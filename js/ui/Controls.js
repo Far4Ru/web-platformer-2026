@@ -36,10 +36,14 @@ export class Controls {
     drawIcon(ctx, this.ui.icons.restart, 'restart', this.ui.colors, false, false, this.images);
     if (state === 'playing' && this.showTouch) {
       ctx.save();
+      const touchImages = {
+        left: this.images.controlLeft,
+        right: this.images.controlRight,
+        jump: this.images.controlUp,
+      };
       for (const [action, rect] of Object.entries(this.touchAreas)) {
         ctx.globalAlpha = 0.85;
-        const image = this.images[`control${action[0].toUpperCase()}${action.slice(1)}`];
-        ctx.drawImage(image, rect.x, rect.y, rect.width, rect.height);
+        ctx.drawImage(touchImages[action], rect.x, rect.y, rect.width, rect.height);
       }
       ctx.restore();
     }
