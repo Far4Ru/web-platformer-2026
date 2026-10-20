@@ -14,6 +14,7 @@ import { drawChest, drawHellEffects, drawHellWall } from '../../render/cards.js'
 import { drawCompanion, drawAbilityShot,
   drawEnemyAbility, drawEnemyShot, drawEnemySpikes } from '../../render/abilities.js';
 import { drawMovementHint } from '../../render/movementHint.js';
+import { drawSpeechBubble } from '../../render/speechBubble.js';
 
 export function visibleGroundPlatforms(platforms, left, right) {
   return platforms.filter((platform) =>
@@ -38,12 +39,13 @@ export class GameScene {
     game.background.render(ctx, canvas, time, game.camera, game.level.width, viewport);
     const { counters, icons } = game.settings.ui;
     counters.score.x = viewport.left + 20;
-    counters.best.x = viewport.left + 164;
+    counters.best.x = viewport.left + 20;
     icons.sound.x = viewport.right - 192;
     icons.pause.x = viewport.right - 130;
     icons.restart.x = viewport.right - 68;
-    for (const rect of [...Object.values(counters), ...Object.values(icons)])
-      rect.y = viewport.top + 18;
+    counters.score.y = viewport.top + 18;
+    counters.best.y = viewport.top + 78;
+    for (const rect of Object.values(icons)) rect.y = viewport.top + 18;
     controls.touchAreas.left.x = viewport.left + 32;
     controls.touchAreas.right.x = viewport.left + 164;
     controls.touchAreas.jump.x = viewport.right - 144;
@@ -62,12 +64,14 @@ export class GameScene {
     for (const platform of groundPlatforms)
       drawPlatform(ctx, platform, art, game.engine.images, time, player, game.grassMotion);
     drawHellEffects(ctx, game.hell, platforms, art.hell,
-      game.engine.images.effects, game.engine.images.spikeVariants);
+      game.engine.images.effects, game.engine.images.spikeVariants,
+      game.engine.images.arrowAnimation, time);
     for (const hazard of hazards) drawHazard(ctx, hazard, art, game.engine.images.spikeVariants);
     for (const spikes of game.enemies.spikes) drawEnemySpikes(ctx, spikes,
       art.abilities, game.engine.images.spikeVariants);
     for (const shot of game.enemies.projectiles) drawEnemyShot(ctx, shot,
-      art.abilities, game.engine.images.effects);
+      art.abilities, game.engine.images.effects,
+      game.engine.images.enemyShotAnimation, time);
     for (const enemy of game.enemies.items) {
       if (enemy.alive) {
         drawEnemy(ctx, enemy, art.enemyColors, time, game.engine.images);
@@ -96,7 +100,8 @@ export class GameScene {
       game.engine.images.objects, time, game.reachGoal.phase,
       game.reachGoal.phaseTime, notice);
     drawDust(ctx, game.dust.particles, game.dust.settings.life, game.engine.images.effects);
-    drawHealingBeam(ctx, player, game.camera, game.healingSkill, game.engine.images.effects);
+    drawHealingBeam(ctx, player, game.camera, game.healingSkill,
+      game.engine.images.effects, game.engine.images.healingAnimation);
     drawCompanion(ctx, game.companionSkill, player, art.abilities, time, game.engine.images.golem);
     const entering = game.reachGoal.phase === 'entering'
       ? Math.min(1, game.reachGoal.phaseTime / game.reachGoal.enterDuration) : 0;
@@ -118,18 +123,38 @@ export class GameScene {
         won: state === 'won',
       });
     ctx.restore();
-    drawMovementHint(ctx, player, game.idleTime, game.engine.images, time);
-    drawSwordAttack(ctx, player, game.swordSkill, game.engine.images.effects);
+    if (state === 'playing') {
+      const bubbleBounds = {
+        left: visibleLeft,
+        right: visibleRight,
+        top: game.camera.y + viewport.top,
+      };
+      if (game.dialogue.text) drawSpeechBubble(ctx, game.engine.images, {
+        anchorX: player.x + player.width / 2,
+        anchorY: player.y,
+        text: game.dialogue.text,
+        visibleCharacters: game.dialogue.visibleCharacters,
+        alpha: game.dialogue.alpha,
+        ...bubbleBounds,
+      });
+      else drawMovementHint(ctx, player, game.idleTime, game.engine.images, time, bubbleBounds);
+    }
+    drawSwordAttack(ctx, player, game.swordSkill, game.engine.images.effects,
+      game.engine.images.swordAnimation);
     for (const shot of game.playerShots.items) drawAbilityShot(ctx, shot,
-      art.abilities, game.engine.images.effects);
+      art.abilities, game.engine.images.effects, {
+        fireball: game.engine.images.fireballAnimation,
+        ice: game.engine.images.iceAnimation,
+        arrow: game.engine.images.arrowAnimation,
+      }, time);
     drawHealthBar(ctx, player, game.playerHealth);
     drawParticles(ctx, game.effects.items, game.effects.settings, game.engine.images.effects);
     ctx.restore();
     drawHellWall(ctx, game.hell, game.camera, canvas, art.hell,
       shakeX, game.engine.images.effects, viewport);
 
-    if (state !== 'playing') overlay.render(ctx, state, viewport);
-    hud.render(ctx, game.collectCoins.count, game.bestScore.value);
+    if (state !== 'playing') overlay.render(ctx, state, viewport, time, game);
+    hud.render(ctx, game.collectCoins.count, game.bestScore.value, time);
     game.skillBar.render(ctx, game);
     game.boostBar.render(ctx, game.boosts, game.engine.images.effects);
     controls.render(ctx, state, game.music.muted);

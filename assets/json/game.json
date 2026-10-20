@@ -47,42 +47,372 @@
     "size": 22
   },
   "images": {
-    "explorer": { "base": "assets/animations/explorer", "clips": ["idle", "run", "jump", "hurt", "victory"], "order": [["idle", 0], ["run", 0], ["run", 1], ["jump", 0], ["hurt", 0], ["victory", 0]] },
-    "explorerActions": { "base": "assets/animations/explorer-actions", "clips": ["prepare", "leap", "fall", "land", "sword", "victory"], "order": [["prepare", 0], ["leap", 0], ["fall", 0], ["land", 0], ["sword", 0], ["victory", 0]] },
-    "golem": { "base": "assets/animations/golem", "clips": ["idle", "walk", "cast"], "order": [["idle", 0], ["walk", 0], ["walk", 1], ["cast", 0]] },
-    "guardian": { "base": "assets/animations/guardian", "clips": ["idle", "walk", "attack"], "order": [["idle", 0], ["walk", 0], ["walk", 1], ["attack", 0]] },
-    "boss": { "base": "assets/animations/boss", "clips": ["idle", "walk", "attack", "hurt"], "order": [["idle", 0], ["walk", 0], ["attack", 0], ["hurt", 0]] },
-    "coinAnimation": { "base": "assets/animations/pickups", "clips": ["spin"], "order": [["spin", 0], ["spin", 1], ["spin", 2], ["spin", 3]] },
-    "chestAnimation": { "base": "assets/animations/pickups", "clips": ["open"], "order": [["open", 0], ["open", 1], ["open", 2], ["open", 3]] },
+    "explorer": {
+      "base": "assets/animations/explorer",
+      "clips": [
+        "idle",
+        "run",
+        "jump",
+        "hurt",
+        "victory"
+      ],
+      "order": [
+        [
+          "idle",
+          0
+        ],
+        [
+          "run",
+          0
+        ],
+        [
+          "run",
+          1
+        ],
+        [
+          "jump",
+          0
+        ],
+        [
+          "hurt",
+          0
+        ],
+        [
+          "victory",
+          0
+        ]
+      ]
+    },
+    "explorerActions": {
+      "base": "assets/animations/explorer-actions",
+      "clips": [
+        "prepare",
+        "leap",
+        "fall",
+        "land",
+        "sword",
+        "victory"
+      ],
+      "order": [
+        [
+          "prepare",
+          0
+        ],
+        [
+          "leap",
+          0
+        ],
+        [
+          "fall",
+          0
+        ],
+        [
+          "land",
+          0
+        ],
+        [
+          "sword",
+          0
+        ],
+        [
+          "victory",
+          0
+        ]
+      ]
+    },
+    "golem": {
+      "base": "assets/animations/golem",
+      "clips": [
+        "idle",
+        "walk",
+        "cast"
+      ],
+      "order": [
+        [
+          "idle",
+          0
+        ],
+        [
+          "walk",
+          0
+        ],
+        [
+          "walk",
+          1
+        ],
+        [
+          "cast",
+          0
+        ]
+      ]
+    },
+    "guardian": {
+      "base": "assets/animations/guardian",
+      "clips": [
+        "idle",
+        "walk",
+        "attack"
+      ],
+      "order": [
+        [
+          "idle",
+          0
+        ],
+        [
+          "walk",
+          0
+        ],
+        [
+          "walk",
+          1
+        ],
+        [
+          "attack",
+          0
+        ]
+      ]
+    },
+    "boss": {
+      "base": "assets/animations/boss",
+      "clips": [
+        "idle",
+        "walk",
+        "attack",
+        "hurt"
+      ],
+      "order": [
+        [
+          "idle",
+          0
+        ],
+        [
+          "walk",
+          0
+        ],
+        [
+          "attack",
+          0
+        ],
+        [
+          "hurt",
+          0
+        ]
+      ]
+    },
+    "coinAnimation": {
+      "base": "assets/animations/pickups",
+      "clips": [
+        "spin"
+      ],
+      "order": [
+        [
+          "spin",
+          0
+        ],
+        [
+          "spin",
+          1
+        ],
+        [
+          "spin",
+          2
+        ],
+        [
+          "spin",
+          3
+        ]
+      ]
+    },
+    "coinCounter": "assets/ui/coin-counter.png",
+    "cardCommon": "assets/ui/card-common.png",
+    "cardRare": "assets/ui/card-rare.png",
+    "cardEpic": "assets/ui/card-epic.png",
+    "cardLegendary": "assets/ui/card-legendary.png",
+    "cardHell": "assets/ui/card-hell.png",
+    "cardArt": [
+      "assets/ui/card-art-health.png",
+      "assets/ui/card-art-damage.png",
+      "assets/ui/card-art-speed.png",
+      "assets/ui/card-art-healing.png",
+      "assets/ui/card-art-bow.png",
+      "assets/ui/card-art-sword.png",
+      "assets/ui/card-art-fireball.png",
+      "assets/ui/card-art-ice.png",
+      "assets/ui/card-art-companion.png",
+      "assets/ui/card-art-simplify.png",
+      "assets/ui/card-art-complicate.png",
+      "assets/ui/card-art-reroll.png",
+      "assets/ui/card-art-noBoss.png",
+      "assets/ui/card-art-blessing.png",
+      "assets/ui/card-art-fakeFlight.png",
+      "assets/ui/card-art-fakeLight.png",
+      "assets/ui/card-art-wall.png",
+      "assets/ui/card-art-arrows.png",
+      "assets/ui/card-art-holes.png",
+      "assets/ui/card-art-freeze.png",
+      "assets/ui/card-art-enemies.png",
+      "assets/ui/card-art-spikes.png"
+    ],
+    "cardRewardRays": "assets/ui/card-reward-rays.png",
+    "chestAnimation": {
+      "base": "assets/animations/pickups",
+      "clips": [
+        "open"
+      ],
+      "order": [
+        [
+          "open",
+          0
+        ],
+        [
+          "open",
+          1
+        ],
+        [
+          "open",
+          2
+        ],
+        [
+          "open",
+          3
+        ]
+      ]
+    },
     "jungle": "assets/images/jungle.png",
     "temple": "assets/images/temple.png",
     "foliage": "assets/images/foliage-base.png",
     "earth": "assets/images/earth.png",
+    "iceEarth": "assets/images/ice-earth.png",
     "grassWind": "assets/sprites/decor/grass-wind-v3.png",
     "vineWind": "assets/sprites/decor/vine-wind-v2.png",
     "surfaceDetails": "assets/sprites/decor/surface-details.png",
-    "platformBases": ["assets/sprites/objects/moss-platform-base.png", "assets/sprites/objects/ice-platform-base.png", "assets/sprites/objects/swamp-platform-base.png"],
-    "spikeVariants": ["assets/sprites/objects/stone-spike.png", "assets/sprites/objects/ice-spike.png", "assets/sprites/objects/swamp-spike.png"],
-    "objects": [["assets/sprites/objects/gold-coin.png", "assets/sprites/objects/moss-chest.png", "assets/sprites/objects/cursed-chest.png"], ["assets/sprites/objects/moss-platform.png", "assets/sprites/objects/ice-platform.png", "assets/sprites/objects/swamp-platform.png"], ["assets/sprites/objects/stone-spike.png", "assets/sprites/objects/jade-portal-open.png", "assets/sprites/objects/carved-pedestal.png"]],
-    "effects": [["assets/sprites/effects/sword-slash.png", "assets/sprites/effects/fireball.png", "assets/sprites/effects/ice-shard.png"], ["assets/sprites/effects/wooden-arrow.png", "assets/sprites/effects/hostile-projectile.png", "assets/sprites/effects/healing-beam.png"], ["assets/sprites/effects/dust-puff.png", "assets/sprites/effects/coin-sparkle.png", "assets/sprites/effects/cursed-spike.png"]],
-    "pickups": [[], [], ["assets/sprites/pickups/heal-potion.png", "assets/sprites/pickups/speed-boots.png", "assets/sprites/pickups/damage-sword.png", "assets/sprites/pickups/sparkles.png"]],
+    "platformBases": [
+      "assets/sprites/objects/moss-platform-base.png",
+      "assets/sprites/objects/ice-platform-base.png",
+      "assets/sprites/objects/swamp-platform-base.png"
+    ],
+    "spikeVariants": [
+      "assets/sprites/objects/stone-spike.png",
+      "assets/sprites/objects/ice-spike.png",
+      "assets/sprites/objects/swamp-spike.png"
+    ],
+    "objects": [
+      [
+        "assets/sprites/objects/gold-coin.png",
+        "assets/sprites/objects/moss-chest.png",
+        "assets/sprites/objects/cursed-chest.png"
+      ],
+      [
+        "assets/sprites/objects/moss-platform.png",
+        "assets/sprites/objects/ice-platform.png",
+        "assets/sprites/objects/swamp-platform.png"
+      ],
+      [
+        "assets/sprites/objects/stone-spike.png",
+        "assets/sprites/objects/jade-portal-open.png",
+        "assets/sprites/objects/carved-pedestal.png"
+      ]
+    ],
+    "effects": [
+      [
+        "assets/sprites/effects/sword-slash.png",
+        "assets/sprites/effects/fireball.png",
+        "assets/sprites/effects/ice-shard.png"
+      ],
+      [
+        "assets/sprites/effects/wooden-arrow.png",
+        "assets/sprites/effects/hostile-projectile.png",
+        "assets/sprites/effects/healing-beam.png"
+      ],
+      [
+        "assets/sprites/effects/dust-puff.png",
+        "assets/sprites/effects/coin-sparkle.png",
+        "assets/sprites/effects/cursed-spike.png"
+      ]
+    ],
+    "fireballAnimation": {
+      "sheet": "assets/animations/effects/fireball.png",
+      "atlas": "assets/animations/effects/fireball.json"
+    },
+    "iceAnimation": {
+      "sheet": "assets/animations/effects/ice-shard.png",
+      "atlas": "assets/animations/effects/ice-shard.json"
+    },
+    "arrowAnimation": {
+      "sheet": "assets/animations/effects/wooden-arrow.png",
+      "atlas": "assets/animations/effects/wooden-arrow.json"
+    },
+    "enemyShotAnimation": {
+      "sheet": "assets/animations/effects/hostile-projectile.png",
+      "atlas": "assets/animations/effects/hostile-projectile.json"
+    },
+    "swordAnimation": {
+      "sheet": "assets/animations/effects/sword-slash.png",
+      "atlas": "assets/animations/effects/sword-slash.json"
+    },
+    "healingAnimation": {
+      "sheet": "assets/animations/effects/healing-beam.png",
+      "atlas": "assets/animations/effects/healing-beam.json"
+    },
+    "pickups": [
+      [],
+      [],
+      [
+        "assets/sprites/pickups/heal-potion.png",
+        "assets/sprites/pickups/speed-boots.png",
+        "assets/sprites/pickups/damage-sword.png",
+        "assets/sprites/pickups/sparkles.png"
+      ]
+    ],
     "panel": "assets/ui/panel_brown.png",
+    "templePlaque": "assets/ui/temple-plaque.png",
+    "victoryHero": [
+      "assets/ui/victory-hero-1.png",
+      "assets/ui/victory-hero-2.png",
+      "assets/ui/victory-hero-3.png"
+    ],
+    "victoryTitle": "assets/ui/victory-title.svg",
+    "defeatTitle": "assets/ui/defeat-title.svg",
+    "recordBadge": "assets/ui/record-badge.svg",
     "panelDark": "assets/ui/panel_brown_dark.png",
     "panelBorder": "assets/ui/panel_border_brown.png",
     "button": "assets/ui/button_brown.png",
+    "mayaButton": "assets/ui/maya-button.png",
+    "skillSlots": [
+      "assets/ui/skill-slot-1.png",
+      "assets/ui/skill-slot-2.png",
+      "assets/ui/skill-slot-3.png"
+    ],
     "buttonRed": "assets/ui/button_red.png",
     "roundButton": "assets/ui/round_brown.png",
     "iconPause": "assets/ui/icon-pause.png",
+    "controlPause": "assets/ui/control-pause.png",
+    "controlPlay": "assets/ui/control-play.png",
+    "controlRestart": "assets/ui/control-restart.png",
+    "controlSound": "assets/ui/control-sound.png",
+    "controlSoundOff": "assets/ui/control-sound-off.png",
+    "controlLeft": "assets/ui/control-left.png",
+    "controlRight": "assets/ui/control-right.png",
+    "controlUp": "assets/ui/control-up.png",
     "iconPlay": "assets/ui/icon-play.png",
     "iconSound": "assets/ui/icon-sound.png",
     "iconSoundOff": "assets/ui/icon-sound-off.png",
     "iconRestart": "assets/ui/icon-restart.png",
     "iconTrophy": "assets/ui/icon-trophy.png",
+    "ancientTrophy": "assets/ui/ancient-trophy.png",
     "keyLeft": "assets/ui/keyboard_arrow_left.png",
     "keyRight": "assets/ui/keyboard_arrow_right.png",
     "keyUp": "assets/ui/keyboard_arrow_up.png",
     "keyDown": "assets/ui/keyboard_arrow_down.png",
-    "keySpace": "assets/ui/keyboard_space_icon.png"
+    "keySpace": "assets/ui/keyboard_space_icon.png",
+    "speechLeft": "assets/ui/speech_left.png",
+    "speechMiddle": "assets/ui/speech_middle.png",
+    "speechRight": "assets/ui/speech_right.png",
+    "speechConnector": "assets/ui/speech_connector.png",
+    "speechKeyLeft": "assets/ui/speech_key_left.png",
+    "speechKeyRight": "assets/ui/speech_key_right.png",
+    "speechKeyUp": "assets/ui/speech_key_up.png",
+    "speechKeyDown": "assets/ui/speech_key_down.png"
   },
   "world": {
     "width": 960,
@@ -468,7 +798,7 @@
       "choose": "ВЫБЕРИТЕ КАРТУ",
       "transform": "СУНДУК ПРЕВРАЩАЕТСЯ В АДСКИЙ",
       "hell": "АДСКАЯ КАРТА",
-      "accept": "Удерживайте ↑ или Space 0,5 секунды",
+      "accept": "Подтвердить",
       "chooseHint": "← → выбор · ↑ / Space 0,5 с · ↓ реролл 0,5 с",
       "reroll": "↓ Сменить карты",
       "level": "Уровень"
@@ -637,7 +967,7 @@
       "spikeDuration": 5,
       "shake": 3
     },
-    "chestSize": 34,
+    "chestSize": 44,
     "transformDuration": 1.5
   },
   "level": {
@@ -927,8 +1257,8 @@
         ]
       ],
       "enemy": {
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
         "edgeInset": 18,
         "speed": [
           42,
@@ -1118,6 +1448,7 @@
         "lift": 46,
         "edgeInset": 15
       },
+      "chestSize": 44,
       "goalEdgeInset": 12,
       "topPadding": 180,
       "bottomPadding": 330,
@@ -1756,8 +2087,9 @@
       {
         "platformIndex": 4,
         "x": 795,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 0,
         "speed": 48,
         "direction": 1,
         "maxHealth": 1
@@ -1765,8 +2097,9 @@
       {
         "platformIndex": 14,
         "x": 2750,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 1,
         "speed": 55,
         "direction": -1,
         "maxHealth": 2
@@ -1774,8 +2107,9 @@
       {
         "platformIndex": 18,
         "x": 3520,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 2,
         "speed": 62,
         "direction": 1,
         "maxHealth": 3
@@ -1783,8 +2117,9 @@
       {
         "platformIndex": 22,
         "x": 4330,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 3,
         "speed": 58,
         "direction": -1,
         "maxHealth": 2
@@ -1792,8 +2127,9 @@
       {
         "platformIndex": 29,
         "x": 5620,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 0,
         "speed": 52,
         "direction": 1,
         "maxHealth": 4
@@ -1801,8 +2137,9 @@
       {
         "platformIndex": 44,
         "x": 6220,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 1,
         "speed": 55,
         "direction": -1,
         "maxHealth": 2,
@@ -1811,8 +2148,9 @@
       {
         "platformIndex": 48,
         "x": 7000,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 2,
         "speed": 65,
         "direction": 1,
         "maxHealth": 3,
@@ -1821,8 +2159,9 @@
       {
         "platformIndex": 50,
         "x": 7380,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 3,
         "speed": 58,
         "direction": -1,
         "maxHealth": 3,
@@ -1831,8 +2170,9 @@
       {
         "platformIndex": 52,
         "x": 7750,
-        "width": 30,
-        "height": 26,
+        "width": 38,
+        "height": 34,
+        "visualVariant": 0,
         "speed": 68,
         "direction": 1,
         "maxHealth": 4,
@@ -1934,10 +2274,11 @@
     "coinBobAmount": 3,
     "goalPortal": {
       "font": "Alice, serif",
+      "portalHeight": 110,
       "coreRadius": 20,
-      "ringRadius": 16,
-      "ringWidth": 3,
-      "markerRadius": 2.5,
+      "ringRadius": 38,
+      "ringWidth": 4,
+      "markerRadius": 3,
       "stemWidth": 10,
       "pedestalWidth": 72,
       "pedestalHeight": 18,
@@ -1996,14 +2337,14 @@
       "score": {
         "x": 20,
         "y": 18,
-        "width": 132,
+        "width": 172,
         "height": 56
       },
       "best": {
-        "x": 164,
-        "y": 18,
+        "x": 20,
+        "y": 78,
         "width": 132,
-        "height": 56
+        "height": 36
       }
     },
     "skills": {
@@ -2065,7 +2406,7 @@
       },
       "button": {
         "x": 350,
-        "y": 332,
+        "y": 410,
         "width": 260,
         "height": 54
       }

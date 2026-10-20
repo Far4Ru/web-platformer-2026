@@ -1,5 +1,27 @@
-import { drawCard, drawChest, drawRarityBanner } from '../render/cards.js';
-import { drawNineSlice } from '../render/uiImage.js';
+import { drawCard, drawChest } from '../render/cards.js';
+
+const SKILL_EFFECTS = {
+  healing: ['Лечит 1 HP каждые 15 с', 'Лечит 2 HP каждые 12 с',
+    'Лечит 3 HP каждые 10 с'],
+  bow: ['Точность стрел: 15%', 'Точность стрел: 40%',
+    'Точность стрел: 100%'],
+  sword: ['Короткий удар мечом', 'Удар мечом дальше',
+    'Два удара подряд'],
+  fireball: ['Один огненный шар', 'Три огненных шара',
+    'Шесть шаров вращаются вокруг'],
+  ice: ['Ледяной осколок', 'Катящийся ледяной шар',
+    'Ледяные осколки вокруг'],
+  companion: ['Компаньон следует за героем', 'Компаньон применяет умение I',
+    'Компаньон применяет умение II'],
+};
+
+export function cardAtLevel(card, level) {
+  return card.kind === 'skill' && SKILL_EFFECTS[card.id]
+    ? {
+      ...card, description: SKILL_EFFECTS[card.id][Math.max(0,
+        Math.min(2, level - 1))]
+    } : card;
+}
 
 export class CardOverlay {
   constructor(ui, settings, world, images) {
@@ -54,9 +76,46 @@ export class CardOverlay {
       ctx.fillText('!', this.world.width / 2, 300);
     } else if (chests.phase === 'reward') {
       const card = chests.rewardCard;
-      drawRarityBanner(ctx, card, this.settings.rarityColors[card.rarity],
-        this.settings.rarityLabels[card.rarity], this.settings.uiText.reward,
-        palette, this.ui.font, this.world, time, this.images);
+      const elapsed = this.settings.rewardBannerDuration - chests.timer;
+      const vanish = Math.max(0, 1 - elapsed / 0.28);
+      if (vanish > 0) chests.rewardOffers.forEach((offer, index) => {
+        if (index === chests.rewardIndex) return;
+        ctx.save();
+        ctx.globalAlpha = vanish;
+        const level = offer.kind === 'skill' ? game[`${offer.id}Skill`].level + 1 : 0;
+        drawCard(ctx, cardAtLevel(offer, level), this.rect(index),
+          this.settings.rarityColors[offer.rarity], this.ui.font, palette,
+          this.settings.rarityLabels[offer.rarity],
+          level ? `${this.settings.uiText.level} ${level}` : '',
+          false, 0, time, this.images);
+        ctx.restore();
+      });
+      const progress = Math.max(0, Math.min(1, elapsed / 0.72));
+      const eased = progress * progress * (3 - 2 * progress);
+      const source = card.rarity === 'hell'
+        ? { x: 364, y: 130, width: 232, height: 252 }
+        : this.rect(chests.rewardIndex);
+      const target = { x: 330, y: 106, width: 300, height: 326 };
+      const rect = Object.fromEntries(Object.keys(target).map((key) =>
+        [key, source[key] + (target[key] - source[key]) * eased]));
+      const rayReveal = Math.max(0, Math.min(1, (elapsed - 0.72) / 0.35));
+      if (rayReveal > 0) {
+        ctx.save();
+        ctx.globalAlpha = rayReveal * 0.94;
+        ctx.drawImage(this.images.cardRewardRays, 205, 0, 550, 550);
+        ctx.restore();
+      }
+      const level = chests.rewardLevel;
+      ctx.save();
+      ctx.translate(rect.x, rect.y);
+      ctx.scale(rect.width / 232, rect.height / 252);
+      drawCard(ctx, cardAtLevel(card, level),
+        { x: 0, y: 0, width: 232, height: 252 },
+        this.settings.rarityColors[card.rarity], this.ui.font, palette,
+        this.settings.rarityLabels[card.rarity],
+        level ? `${this.settings.uiText.level} ${level}` : '',
+        true, 0, time, this.images);
+      ctx.restore();
     } else if (chests.phase === 'hellCard') {
       ctx.fillText(this.settings.uiText.hell, this.world.width / 2, 80);
       const card = { ...chests.hellCard, rarity: 'hell' };
@@ -65,33 +124,53 @@ export class CardOverlay {
         '', true, chests.holdProgress / this.settings.confirmHoldSeconds, time, this.images);
       ctx.font = `18px ${this.ui.font}`;
       ctx.fillStyle = palette.text;
-      ctx.fillText(this.settings.uiText.accept, this.world.width / 2, 430);
+      ctx.drawImage(this.images.speechKeyUp, 370, 405, 31, 31);
+      ctx.fillText('Подтвердить', 570, 426);
     } else {
       ctx.fillText(this.settings.uiText.choose, this.world.width / 2, 82);
-      chests.offers.forEach((card, index) => drawCard(ctx, card, this.rect(index),
-        this.settings.rarityColors[card.rarity], this.ui.font, palette,
-        this.settings.rarityLabels[card.rarity],
-        card.kind === 'skill' ? `${this.settings.uiText.level} ${game[`${card.id}Skill`].level + 1}` : '',
-        index === chests.selectedIndex,
-        index === chests.selectedIndex ? chests.holdProgress / this.settings.confirmHoldSeconds : 0,
-        time, this.images));
+      chests.offers.forEach((card, index) => {
+        const level = card.kind === 'skill' ? game[`${card.id}Skill`].level + 1 : 0;
+        drawCard(ctx, cardAtLevel(card, level), this.rect(index),
+          this.settings.rarityColors[card.rarity], this.ui.font, palette,
+          this.settings.rarityLabels[card.rarity],
+          level ? `${this.settings.uiText.level} ${level}` : '',
+          index === chests.selectedIndex,
+          index === chests.selectedIndex ? chests.holdProgress / this.settings.confirmHoldSeconds : 0,
+          time, this.images);
+      });
       if (chests.rerolls > 0) {
         const button = this.ui.cards.reroll;
-        drawNineSlice(ctx, this.images.button, button.x, button.y, button.width, button.height, 9);
-        ctx.fillStyle = '#342619';
+        ctx.drawImage(this.images.mayaButton, button.x, button.y, button.width, button.height);
+        ctx.fillStyle = '#ffe9ad';
         ctx.font = `19px ${this.ui.font}`;
-        ctx.fillText(`${this.settings.uiText.reroll} (${chests.rerolls})`,
-          this.world.width / 2, button.y + 30);
+        ctx.drawImage(this.images.speechKeyDown,
+          button.x + 16, button.y + 8, 30, 30);
+        ctx.fillText(`Сменить карты (${chests.rerolls})`,
+          this.world.width / 2 + 13, button.y + 30);
         if (chests.rerollProgress > 0) {
           ctx.fillStyle = this.settings.rarityColors.rare;
           ctx.fillRect(button.x + 12, button.y + button.height - 8,
             (button.width - 24) * Math.min(1, chests.rerollProgress / this.settings.confirmHoldSeconds), 4);
         }
       }
-      ctx.fillStyle = palette.description;
-      ctx.font = `17px ${this.ui.font}`;
-      ctx.fillText(this.settings.uiText.chooseHint, this.world.width / 2, 490);
+      this.drawChoiceHints(ctx, palette);
     }
     ctx.restore();
+  }
+
+  drawChoiceHints(ctx, palette) {
+    const y = 472;
+    const hints = [
+      { icon: this.images.speechKeyLeft, x: 250 },
+      { icon: this.images.speechKeyRight, x: 281 },
+      { icon: this.images.speechKeyUp, x: 430 },
+      { icon: this.images.speechKeyDown, x: 642 },
+    ];
+    hints.forEach(({ icon, x }) => ctx.drawImage(icon, x, y, 29, 29));
+    ctx.fillStyle = palette.description;
+    ctx.font = `16px ${this.ui.font}`;
+    ctx.fillText('Выбор', 354, y + 20);
+    ctx.fillText('Подтвердить', 550, y + 20);
+    ctx.fillText('Перебросить', 748, y + 20);
   }
 }

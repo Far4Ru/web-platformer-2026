@@ -4,6 +4,7 @@ import test from 'node:test';
 import { Enemies } from '../js/game/features/Enemies.js';
 import { ReachGoal } from '../js/game/features/ReachGoal.js';
 import { generateLevel } from '../js/game/LevelGenerator.js';
+import { drawEnemy, enemyLook } from '../js/render/enemy.js';
 
 const settings = JSON.parse(readFileSync(new URL('../assets/json/game.json', import.meta.url), 'utf8'));
 
@@ -24,6 +25,59 @@ test('ordinary enemies can dash toward the player and jump above their platform'
   assert(enemy.y < platform.y - enemy.height);
   for (let frame = 0; frame < 120; frame++) enemies.update(1 / 60, { x: 220 });
   assert.equal(enemy.y, platform.y - enemy.height);
+});
+
+test('enemy ability use reports the skill that actually activated', () => {
+  const platform = { x: 0, y: 200, width: 300, height: 24 };
+  const enemies = new Enemies([{
+    platformIndex: 0, x: 60, width: 30, height: 26,
+    speed: 50, direction: 1, maxHealth: 2,
+  }], [platform], settings.enemyAbilities);
+  const enemy = enemies.items[0];
+  enemy.skills = ['shoot'];
+  enemy.abilityTimers = { shoot: 0 };
+  const uses = [];
+  enemies.update(0.01, { x: 100, y: enemy.y, width: 32, height: 40 },
+    (actor, skill) => uses.push({ actor, skill }));
+  assert.deepEqual(uses, [{ actor: enemy, skill: 'shoot' }]);
+  assert.equal(enemy.castKind, 'shoot');
+  assert(enemy.castFor > 0);
+});
+
+test('ordinary enemy abilities change their sprite and attack animation', () => {
+  const platform = { x: 0, y: 200, width: 300, height: 24 };
+  const enemies = new Enemies([{ platformIndex: 0, x: 60, width: 38, height: 34,
+    speed: 50, direction: 1, maxHealth: 2, visualVariant: 0, animationPhase: 0 }],
+  [platform], settings.enemyAbilities);
+  const enemy = enemies.items[0];
+  const sprite = (name) => ({ frames: Array.from({ length: 4 }, (_, frame) => ({
+    image: { name, frame }, x: 0, y: 0, w: 10, h: 10,
+  })) });
+  const images = { guardian: sprite('guardian'), golem: sprite('golem') };
+  const calls = [];
+  const ctx = {
+    save() {}, restore() {}, translate() {}, scale() {}, transform() {}, rotate() {},
+    beginPath() {}, arc() {}, moveTo() {}, lineTo() {}, stroke() {}, fill() {},
+    fillRect() {}, closePath() {},
+    drawImage(image) { calls.push({ image, filter: this.filter }); },
+  };
+  enemy.skills = [];
+  drawEnemy(ctx, enemy, settings.scene.enemyColors, 0, images);
+  assert.equal(calls.at(-1).image.name, 'guardian');
+  enemy.skills = ['shoot'];
+  enemies.activate(enemy, 'shoot', { x: 160, y: enemy.y });
+  drawEnemy(ctx, enemy, settings.scene.enemyColors, 0, images);
+  assert.deepEqual(calls.at(-1).image, { name: 'golem', frame: 3 });
+  assert.match(calls.at(-1).filter, /hue-rotate/);
+  assert.equal(enemyLook(enemy).skill, 'shoot');
+  enemy.skills = ['spikes'];
+  enemy.castFor = 0;
+  drawEnemy(ctx, enemy, settings.scene.enemyColors, 0, images);
+  assert.equal(calls.at(-1).image.name, 'guardian');
+  assert.equal(enemyLook(enemy).skill, 'spikes');
+  enemies.reset();
+  assert.equal(enemy.castFor, 0);
+  assert.equal(enemy.visualVariant, 0);
 });
 
 test('boss has 15 HP, multiple random skills, amplified attacks, and gates the portal', () => {

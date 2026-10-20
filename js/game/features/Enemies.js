@@ -41,7 +41,7 @@ export class Enemies {
     }
   }
 
-  update(dt, player) {
+  update(dt, player, onSkill = () => {}) {
     this.items.forEach((enemy) => {
       enemy.update(dt);
       if (!enemy.alive || enemy.frozenFor > 0 || enemy.hurtTime > 0) return;
@@ -50,6 +50,7 @@ export class Enemies {
         if (enemy.abilityTimers[skill] > 0) continue;
         enemy.abilityTimers[skill] = enemy.settings.abilityInterval ?? enemy.abilities.interval;
         this.activate(enemy, skill, player);
+        onSkill(enemy, skill);
       }
     });
     this.projectiles.forEach((shot) => shot.update(dt));
@@ -59,6 +60,8 @@ export class Enemies {
   }
 
   activate(enemy, skill, player) {
+    enemy.castFor = skill === 'jump' ? 0.2 : 0.38;
+    enemy.castKind = skill;
     if (skill === 'dash') return enemy.dashToward(player);
     if (skill === 'jump') return enemy.jump();
     if (skill === 'shoot') {

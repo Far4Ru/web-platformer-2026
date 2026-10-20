@@ -86,11 +86,16 @@ test('generated routes and required objects obey movement limits', () => {
         sharedIndex(item, junctions)))][index]];
       assert(pickup.x >= platform.x && pickup.x + pickup.width <= platform.x + platform.width);
       assert(pickup.y + pickup.height < platform.y);
+      assert(pickup.width > rules.pickup.size);
     }
     for (const enemy of level.enemies) {
       const platform = level.platforms[enemy.platformIndex];
       assert(enemy.x >= platform.x && enemy.x + enemy.width <= platform.x + platform.width);
-      if (!enemy.boss) assert.equal(sharedIndex(enemy.platformIndex, junctions), enemy.platformIndex);
+      if (!enemy.boss) {
+        assert.equal(sharedIndex(enemy.platformIndex, junctions), enemy.platformIndex);
+        assert(enemy.width > settings.player.width);
+        assert(enemy.height > rules.pickup.size);
+      }
       assert(!level.chestPickups.some((pickup) =>
         pickup.x >= platform.x && pickup.x < platform.x + platform.width));
     }

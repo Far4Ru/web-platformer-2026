@@ -10,6 +10,9 @@ export class Chests {
     this.hellUsed = false;
     this.hellCard = null;
     this.rewardCard = null;
+    this.rewardOffers = [];
+    this.rewardIndex = 0;
+    this.rewardLevel = 0;
     this.offers = [];
     this.selectedIndex = 0;
     this.phase = null;
@@ -88,6 +91,7 @@ export class Chests {
       if (this.timer <= 0) {
         this.phase = null;
         this.rewardCard = null;
+        this.rewardOffers = [];
         game.engine.resetTime();
       }
       return;
@@ -138,7 +142,11 @@ export class Chests {
   choose(index, game) {
     if (this.phase === 'hellCard') {
       this.rewardCard = { ...this.hellCard, rarity: 'hell' };
-      game.hell.activate(this.hellCard.id, game);
+      this.rewardOffers = [this.rewardCard];
+      this.rewardIndex = 0;
+      this.rewardLevel = 0;
+      if (game.hell.activate(this.hellCard.id, game))
+        game.dialogue?.onHellMode(this.hellCard.id);
       game.sounds?.play('card');
       this.phase = 'reward';
       this.timer = this.settings.rewardBannerDuration;
@@ -150,7 +158,10 @@ export class Chests {
     }
     if (this.phase !== 'choice' || !this.offers[index]) return false;
     const card = this.offers[index];
+    this.rewardOffers = [...this.offers];
+    this.rewardIndex = index;
     this.apply(card, game);
+    this.rewardLevel = card.kind === 'skill' ? game[`${card.id}Skill`].level : 0;
     game.sounds?.play('card');
     this.rewardCard = card;
     this.offers = [];
@@ -164,9 +175,12 @@ export class Chests {
 
   apply(card, game) {
     if (card.kind === 'skill') {
-      game[`${card.id}Skill`].level = Math.min(3, game[`${card.id}Skill`].level + 1);
+      const skill = game[`${card.id}Skill`];
+      const previousLevel = skill.level;
+      skill.level = Math.min(3, previousLevel + 1);
       if (card.id === 'companion' && game.companionSkill.health <= 0)
         game.companionSkill.health = 2;
+      if (skill.level > previousLevel) game.dialogue?.onPlayerSkill(card.id, skill.level);
       return;
     }
     if (card.id === 'health') game.playerHealth.increaseMax(1);
@@ -187,5 +201,6 @@ export class Chests {
       game.collectCoins.grant(15);
       game.bestScore?.save(game.collectCoins.count);
     } else if (card.id === 'blessing') this.blessed = true;
+    game.dialogue?.onCardUpgrade(card.id);
   }
 }

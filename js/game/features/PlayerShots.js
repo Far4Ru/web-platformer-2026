@@ -13,7 +13,7 @@ export class PlayerShots {
     this.items.push(shot);
   }
 
-  update(dt, enemies, damageMultiplier = 1, platforms = []) {
+  update(dt, enemies, damageMultiplier = 1, platforms = [], onHit = () => {}) {
     for (const shot of this.items) {
       shot.update(dt);
       if (shot.delay > 0 || shot.orbit) continue;
@@ -32,6 +32,7 @@ export class PlayerShots {
       if (enemy) {
         const damaged = enemy.takeDamage(shot.damage * damageMultiplier, shot.stun);
         if (shot.freeze && damaged !== false) enemy.freeze(shot.freeze);
+        if (damaged !== false) onHit(shot.kind, enemy);
         shot.life = 0;
       }
     }

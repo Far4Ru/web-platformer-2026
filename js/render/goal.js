@@ -10,16 +10,22 @@ export function drawGoal(ctx, goal, progress, ready, scene, image, time = 0,
   const pedestalY = goal.y + goal.height - art.pedestalHeight;
   const charge = clamp(progress);
   const entering = phase === 'entering' ? clamp(phaseTime / 0.75) : 0;
+  const portalImage = image[2][1];
+  const portalHeight = art.portalHeight ?? 110;
+  const portalWidth = portalHeight * portalImage.width / portalImage.height;
 
   ctx.save();
   drawAtlasCell(ctx, image, 2, 2, centerX - 46, pedestalY - 16, 92, 42);
+  drawAtlasCell(ctx, image, 1, 2, centerX - portalWidth / 2,
+    centerY - portalHeight / 2, portalWidth, portalHeight);
 
-  // The gauge sits behind the transparent opening of the portal sprite.
-  ctx.lineWidth = art.ringWidth;
+  // The gauge occupies the stone band, leaving the arch visible on both sides.
+  ctx.lineWidth = art.ringWidth + 4;
   ctx.strokeStyle = art.track;
   ctx.beginPath();
   ctx.arc(centerX, centerY, art.ringRadius, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.lineWidth = art.ringWidth;
   ctx.strokeStyle = ready ? art.readyRing : art.progressRing;
   ctx.beginPath();
   ctx.arc(centerX, centerY, art.ringRadius, -Math.PI / 2,
@@ -47,8 +53,6 @@ export function drawGoal(ctx, goal, progress, ready, scene, image, time = 0,
     ctx.arc(centerX, centerY, art.ringRadius - 12, 0, Math.PI * 2);
     ctx.stroke();
   }
-
-  drawAtlasCell(ctx, image, 1, 2, centerX - 54, centerY - 55, 108, 110);
 
   if (notice) {
     ctx.fillStyle = '#ffe1b4';

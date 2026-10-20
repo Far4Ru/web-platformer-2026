@@ -13,17 +13,6 @@ export function windPulse(time, x) {
   return distance >= 1 ? 0 : (1 + Math.cos(Math.PI * distance)) / 2;
 }
 
-function drawMirroredTile(ctx, image, sx, sy, sourceSize, x, y, width, height,
-  flipX, flipY = false) {
-  ctx.save();
-  if (flipX || flipY) {
-    ctx.translate(flipX ? 2 * x + width : 0, flipY ? 2 * y + height : 0);
-    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
-  }
-  ctx.drawImage(image, sx, sy, sourceSize, sourceSize, x, y, width, height);
-  ctx.restore();
-}
-
 export function drawEarth(ctx, platforms, images, scene, camera, viewport) {
   const bottom = camera.y + viewport.bottom;
   const left = camera.x + viewport.left;
@@ -38,18 +27,18 @@ export function drawEarth(ctx, platforms, images, scene, camera, viewport) {
       ctx.rect(piece.x, earthY, piece.width, bottom - earthY);
       ctx.clip();
       ctx.globalAlpha = scene.earthOpacity;
-      const tile = surfaceIndex(platform) ? 48 : scene.earthTileSize;
+      const surface = surfaceIndex(platform);
+      const tile = surface === 1 ? 256 : surface === 2 ? 128 : scene.earthTileSize;
       const firstX = Math.floor(Math.max(left, piece.x) / tile) * tile;
       const firstY = Math.floor(Math.max(camera.y + viewport.top, earthY) / tile) * tile;
-      const surface = surfaceIndex(platform);
-      const image = surface ? images.platformBases[surface] : images.earth;
+      const image = surface === 1 ? images.iceEarth
+        : surface === 2 ? images.platformBases[2] : images.earth;
       for (let y = firstY; y < bottom; y += tile) {
         for (let x = firstX; x < Math.min(right, piece.x + piece.width); x += tile) {
-          if (surface) {
-            const crop = Math.min(image.height * 0.42, image.width * 0.3);
-            drawMirroredTile(ctx, image, image.width * 0.28, image.height * 0.4,
-              crop, x, y, tile, tile, Math.floor(x / tile) % 2 !== 0,
-              Math.floor(y / tile) % 2 !== 0);
+          if (surface === 2) {
+            const crop = Math.min(image.height * 0.48, image.width * 0.3);
+            ctx.drawImage(image, image.width * 0.35, image.height * 0.43,
+              crop, crop, x, y, tile, tile);
           } else ctx.drawImage(image, x, y, tile, tile);
         }
       }

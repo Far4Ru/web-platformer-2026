@@ -242,6 +242,8 @@ export function generateLevel(template, requestedSeed) {
       height: rules.enemy.height,
       speed: between(random, ...rules.enemy.speed),
       direction: random() < 0.5 ? -1 : 1,
+      visualVariant: index % 4,
+      animationPhase: random() * Math.PI * 2,
       maxHealth: rules.enemy.health[index],
       abilityInterval: between(random, ...rules.enemy.abilityIntervalTenths) / 10,
     };
@@ -279,8 +281,9 @@ export function generateLevel(template, requestedSeed) {
 
   const chestPickups = chestIndices.map((index) => {
     const platform = route[index];
-    return { x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
-      y: platform.y - rules.pickup.lift, width: rules.pickup.size, height: rules.pickup.size };
+    const size = rules.chestSize ?? rules.pickup.size;
+    return { x: platform.x + platform.width - size - rules.pickup.edgeInset,
+      y: platform.y - rules.pickup.lift, width: size, height: size };
   });
   for (const [surface, zones] of Object.entries(rules.surfaceZones)) {
     for (const zone of zones) {

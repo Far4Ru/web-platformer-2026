@@ -36,16 +36,10 @@ export class Controls {
     drawIcon(ctx, this.ui.icons.restart, 'restart', this.ui.colors, false, false, this.images);
     if (state === 'playing' && this.showTouch) {
       ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = `bold 54px ${this.ui.font}`;
-      ctx.fillStyle = '#fff5d6';
       for (const [action, rect] of Object.entries(this.touchAreas)) {
         ctx.globalAlpha = 0.85;
-        ctx.drawImage(this.images.roundButton, rect.x, rect.y, rect.width, rect.height);
-        ctx.globalAlpha = 1;
-        ctx.fillText(this.texts.touchLabels[action],
-          rect.x + rect.width / 2, rect.y + rect.height / 2 - 2);
+        const image = this.images[`control${action[0].toUpperCase()}${action.slice(1)}`];
+        ctx.drawImage(image, rect.x, rect.y, rect.width, rect.height);
       }
       ctx.restore();
     }

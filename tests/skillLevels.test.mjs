@@ -74,3 +74,16 @@ test('companion has health and gets a skill at levels two and three', () => {
   companion.update(0.1, player, { items: [], projectiles: [], spikes: [] }, shots, game);
   assert.equal(companion.skillLevel, 3);
 });
+
+test('level two companion can fire the bow without missing skill methods', () => {
+  const companion = new CompanionSkill(settings.companionSkill);
+  companion.level = 2;
+  companion.skillLevel = 2;
+  companion.skillKind = 'bow';
+  const shots = { items: [], add(shot) { this.items.push(shot); } };
+  const enemy = { x: 300, y: 0, width: 30, height: 30, alive: true,
+    predictX() { return this.x; } };
+  companion.update(0.1, player, { items: [enemy], projectiles: [], spikes: [] },
+    shots, { settings });
+  assert.equal(shots.items[0]?.kind, 'arrow');
+});

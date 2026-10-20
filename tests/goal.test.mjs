@@ -35,27 +35,37 @@ test('leaving the threshold resets an opening gate', () => {
   assert.equal(gate.progress({ count: 0, total: 0 }), 0);
 });
 
-test('portal art covers the ring but leaves its center and notice unboxed', () => {
+test('portal keeps its proportions and frames the gauge on both sides', () => {
   const operations = [];
+  const arcs = [];
+  const portal = { width: 1437, height: 1095 };
+  let portalDraw;
   const ctx = {
     save() {}, restore() {}, beginPath() {},
-    arc() { operations.push('arc'); },
+    arc(_x, _y, radius) { arcs.push(radius); operations.push('arc'); },
     stroke() { operations.push('stroke'); },
     fill() { operations.push('fill'); },
-    drawImage(image) { operations.push(image); },
+    drawImage(image, x, y, width, height) {
+      operations.push(image === portal ? 'portal' : image);
+      if (image === portal) portalDraw = { x, y, width, height };
+    },
     fillText(text) { operations.push(text); },
     fillRect() { throw new Error('Portal center must stay transparent'); },
     strokeRect() { throw new Error('Notice must have no frame'); },
   };
-  const image = [[], [], [null, 'portal', 'pedestal']];
+  const image = [[], [], [null, portal, 'pedestal']];
   const scene = { goalPortal: {
-    pedestalHeight: 18, ringWidth: 3, track: '#333', progressRing: '#ff0',
-    readyRing: '#0ff', ringRadius: 16, markers: [], font: 'serif',
+    pedestalHeight: 18, portalHeight: 110, ringWidth: 4,
+    track: '#333', progressRing: '#ff0', readyRing: '#0ff',
+    ringRadius: 38, markers: [], font: 'serif',
   } };
   drawGoal(ctx, { x: 0, y: 0, width: 80, height: 96, portalOffsetY: 40 },
     0.5, false, scene, image, 0, 'charging', 0,
     'Вижу недостойного!\nТебе не хватает 7 монет');
-  assert(operations.lastIndexOf('stroke') < operations.indexOf('portal'));
+  assert(operations.indexOf('portal') < operations.indexOf('stroke'));
+  assert.equal(portalDraw.height, 110);
+  assert(Math.abs(portalDraw.width / portalDraw.height - portal.width / portal.height) < 1e-10);
+  assert(arcs.includes(38));
   assert(operations.includes('Вижу недостойного!'));
   assert(operations.includes('Тебе не хватает 7 монет'));
   assert(!operations.some((operation) => typeof operation === 'string' && operation.includes('%')));

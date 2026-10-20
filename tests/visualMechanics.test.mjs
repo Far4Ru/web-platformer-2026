@@ -141,6 +141,26 @@ test('companion walks the recorded route through a turn without jumping', () => 
     Math.hypot(point.x - positions[index - 1].x, point.y - positions[index - 1].y) <= 700 * 0.016 + 0.01));
 });
 
+test('companion continues to the landing point instead of stopping in midair', () => {
+  const platforms = new Platforms([{ x: 0, y: 100, width: 400, height: 24 }]);
+  const player = { x: 100, y: 60, width: 30, height: 40, facing: 1,
+    grounded: true, groundPlatform: platforms.items[0] };
+  const skill = new CompanionSkill({ distance: 62 });
+  skill.level = 1;
+  const enemies = { items: [], projectiles: [], spikes: [] };
+  const shots = { add() {} };
+  const game = { platforms };
+  skill.update(0.016, player, enemies, shots, game);
+  for (const [x, y, grounded] of [[145, 25, false], [180, 30, false],
+    [185, 60, true]]) {
+    Object.assign(player, { x, y, grounded });
+    skill.update(0.016, player, enemies, shots, game);
+  }
+  for (let i = 0; i < 45; i++) skill.update(0.016, player, enemies, shots, game);
+  assert.equal(skill.companion.grounded, true);
+  assert.equal(skill.companion.y, 60);
+});
+
 test('projectile image keeps its native aspect ratio without changing hitbox', () => {
   const shot = { kind: 'ice', x: 10, y: 20, width: 10, height: 25, vx: 1, vy: 0 };
   const sprite = { width: 512, height: 341 };

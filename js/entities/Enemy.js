@@ -12,6 +12,8 @@ export class Enemy extends Entity {
     this.platform = platform;
     this.settings = settings;
     this.abilities = abilities;
+    this.visualVariant = settings.visualVariant ?? 0;
+    this.animationPhase = settings.animationPhase ?? 0;
     this.left = platform.x;
     this.right = platform.x + platform.width - this.width;
     this.reset();
@@ -44,6 +46,8 @@ export class Enemy extends Entity {
     this.jumpVelocity = 0;
     this.dashFor = 0;
     this.shieldFor = 0;
+    this.castFor = 0;
+    this.castKind = null;
   }
 
   get alive() {
@@ -53,6 +57,7 @@ export class Enemy extends Entity {
   update(dt) {
     if (!this.alive) return;
     this.shieldFor = Math.max(0, this.shieldFor - dt);
+    this.castFor = Math.max(0, this.castFor - dt);
     this.frozenFor = Math.max(0, this.frozenFor - dt);
     if (this.frozenFor > 0) return;
     if (this.jumpVelocity !== 0 || this.y < this.platform.y - this.height) {

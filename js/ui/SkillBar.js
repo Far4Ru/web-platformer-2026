@@ -16,13 +16,8 @@ export class SkillBar {
     const startX = (this.canvasWidth - skills.length * size - (skills.length - 1) * gap) / 2;
     skills.forEach(({ kind, skill }, index) => {
       const rect = { x: startX + index * (size + gap), y, width: size, height: size };
-      drawSkillIcon(ctx, kind, rect, colors, skill.cooldown === 0, game.engine.images);
-      ctx.save();
-      ctx.fillStyle = colors.text;
-      ctx.font = `14px ${this.ui.font}`;
-      ctx.textAlign = 'left';
-      ctx.fillText(`III`.slice(0, skill.level), rect.x + 4, rect.y + size - 5);
-      ctx.restore();
+      drawSkillIcon(ctx, kind, rect, colors, skill.cooldown === 0,
+        game.engine.images, skill.level);
       if (skill.cooldown > 0) {
         ctx.save();
         ctx.fillStyle = colors.text;

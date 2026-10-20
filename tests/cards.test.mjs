@@ -7,12 +7,49 @@ import { PlayerHealth } from '../js/game/features/PlayerHealth.js';
 import { PlayerMovement } from '../js/game/features/PlayerMovement.js';
 import { Platforms } from '../js/game/features/Platforms.js';
 import { drawCard, drawCardIcon, drawHellWall, drawRarityBanner } from '../js/render/cards.js';
+import { CardOverlay, cardAtLevel } from '../js/ui/CardOverlay.js';
 
 const settings = JSON.parse(readFileSync(new URL('../assets/json/game.json', import.meta.url), 'utf8'));
 const chestBounds = [
   { x: 0, y: 0, width: 34, height: 34 },
   { x: 100, y: 0, width: 34, height: 34 },
 ];
+
+test('card reward keeps the chosen offer for its center animation and shows only its level effect', () => {
+  const chests = new Chests(chestBounds, settings.cards, () => 0.5);
+  const run = game();
+  const bow = settings.cards.entries.find((card) => card.id === 'bow');
+  chests.offers = [settings.cards.entries[0], bow, settings.cards.entries[1]];
+  chests.phase = 'choice';
+  assert.equal(cardAtLevel(bow, 1).description, 'Точность стрел: 15%');
+  assert.equal(cardAtLevel(bow, 2).description, 'Точность стрел: 40%');
+  assert.equal(cardAtLevel(bow, 3).description, 'Точность стрел: 100%');
+  assert(chests.choose(1, run));
+  assert.equal(chests.rewardIndex, 1);
+  assert.equal(chests.rewardOffers.length, 3);
+  assert.equal(chests.rewardCard.id, 'bow');
+  assert.equal(chests.rewardLevel, 1);
+});
+
+test('reward rays appear after the selected card reaches the center', () => {
+  const rays = { width: 600, height: 600 };
+  const draws = [];
+  const ctx = {
+    save() {}, restore() {}, translate() {}, scale() {}, fillRect() {},
+    fillText() {}, measureText(text) { return { width: text.length * 7 }; },
+    drawImage(image) { draws.push(image); },
+  };
+  const card = settings.cards.entries[0];
+  const overlay = new CardOverlay(settings.ui, settings.cards, settings.world,
+    { cardCommon: { width: 457, height: 507 }, cardRewardRays: rays });
+  const reward = { active: true, phase: 'reward', rewardCard: card,
+    rewardOffers: [card], rewardIndex: 0, rewardLevel: 0, timer: 1.5 };
+  overlay.render(ctx, reward, game(), 0);
+  assert(!draws.includes(rays));
+  reward.timer = 1;
+  overlay.render(ctx, reward, game(), 1);
+  assert(draws.includes(rays));
+});
 
 function game() {
   const boss = { alive: true, boss: true, health: 15 };
@@ -151,7 +188,7 @@ test('held card grows while its confirmation progress is shown', () => {
   const fills = [];
   const ctx = {
     save() {}, restore() {}, translate() {}, beginPath() {}, roundRect() {},
-    fill() {}, stroke() {}, fillText() {}, drawImage() {},
+    fill() {}, stroke() {}, strokeRect() {}, fillText() {}, drawImage() {},
     measureText(text) { return { width: text.length * 8 }; },
     scale(x, y) { scales.push([x, y]); },
     fillRect(...args) { fills.push(args); },
@@ -159,7 +196,8 @@ test('held card grows while its confirmation progress is shown', () => {
   drawCard(ctx, settings.cards.entries[0],
     { x: 100, y: 100, width: 232, height: 252 }, '#fff', 'Alice, serif',
     settings.ui.cards.colors, 'ОБЫЧНАЯ', '', true, 0.5, 1,
-    { panel: { width: 64, height: 64 }, panelBorder: { width: 64, height: 64 },
+    { panel: { width: 64, height: 64 }, panelDark: { width: 64, height: 64 },
+      vineWind: { width: 64, height: 64 }, panelBorder: { width: 64, height: 64 },
       pickups: [[], [], [{ width: 362, height: 362 }]],
       effects: [[{ width: 512, height: 341 }]] });
   assert(scales[0][0] > 1);

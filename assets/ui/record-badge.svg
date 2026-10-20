@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="64" viewBox="0 0 300 64">
+  <path d="M18 8H282L296 32L282 56H18L4 32Z" fill="#533519" stroke="#e8c76c" stroke-width="5"/>
+  <path d="M24 14H276L286 32L276 50H24L14 32Z" fill="none" stroke="#77aa8b" stroke-width="2"/>
+  <text x="150" y="43" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="31" fill="#ffe6a5">✦ РЕКОРД! ✦</text>
+</svg>

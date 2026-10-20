@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="112" viewBox="0 0 780 112">
+  <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#f2d6ae"/><stop offset="1" stop-color="#b56a4a"/></linearGradient></defs>
+  <text x="390" y="76" text-anchor="middle" font-family="Georgia,serif" font-size="52" font-weight="bold" fill="url(#g)" stroke="#34221c" stroke-width="8" paint-order="stroke fill">ЭКСПЕДИЦИЯ ПРОВАЛЕНА</text>
+</svg>

@@ -73,3 +73,5 @@ Export-Clip 'boss' 4 'hurt' @(3) 0 660
 Export-Clip 'pickups' 4 'spin' @(0, 1, 2, 3) 0 362
 Export-Clip 'pickups' 4 'open' @(0, 1, 2, 3) 362 315
 & (Join-Path $PSScriptRoot 'build-bright-coins.ps1')
+python (Join-Path $PSScriptRoot 'repair-animation-artifacts.py')
+python (Join-Path $PSScriptRoot 'align-coin-animation.py')

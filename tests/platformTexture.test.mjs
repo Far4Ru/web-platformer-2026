@@ -7,6 +7,7 @@ import { GrassMotion } from '../js/game/features/GrassMotion.js';
 
 const images = {
   earth: { width: 72 },
+  iceEarth: { width: 1254, height: 1254 },
   platformBases: [{ width: 2172, height: 724 },
     { width: 1904, height: 826 }, { width: 2172, height: 724 }],
   grassWind: { width: 2172, height: 724 },
@@ -37,7 +38,7 @@ test('earth follows platform material and holes remain clipped', () => {
   drawEarth(ctx, [platform], images, { earthOpacity: 1, earthTileSize: 72 },
     { x: 0, y: 0 }, { left: 0, right: 160, top: 0, bottom: 300 });
   assert(ctx.draws.length > 0);
-  assert(ctx.draws.every(([image]) => image === images.platformBases[1]));
+  assert(ctx.draws.every(([image]) => image === images.iceEarth));
   assert.deepEqual(ctx.rects, [[20, 124, 40, 176], [80, 124, 60, 176]]);
   const swamp = context();
   drawEarth(swamp, [{ ...platform, surface: 'swamp', holeFor: 0 }], images,
