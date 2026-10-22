@@ -1,25 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ReachGoal } from '../js/game/features/ReachGoal.js';
+import { goalNotice } from '../js/game/components/GameScene.js';
+import { Game } from '../js/game/Game.js';
+import { WinLose } from '../js/game/features/WinLose.js';
 import { drawGoal } from '../js/render/goal.js';
 
-test('the gate opens only after the coin threshold and boss, then animates entry', () => {
+test('the gate opens after the coin threshold, then animates entry', () => {
   const gate = new ReachGoal({ x: 100, y: 100, width: 80, height: 96,
-    portalOffsetY: 38, portalRadius: 27, openFraction: 0.8, requiresBoss: true });
+    portalOffsetY: 38, portalRadius: 27, openFraction: 0.8 });
   const player = { x: 120, y: 115, width: 32, height: 40 };
   const coins = { count: 79, total: 100 };
 
-  assert.equal(gate.update(2, player, coins, true), false);
+  assert.equal(gate.update(2, player, coins), false);
   assert.equal(gate.phase, 'charging');
   coins.count = 80;
-  assert.equal(gate.update(2, player, coins, false), false);
-  assert.equal(gate.phase, 'charging');
-  assert.equal(gate.update(0.4, player, coins, true), false);
+  assert.equal(gate.update(0.4, player, coins), false);
   assert.equal(gate.phase, 'opening');
-  assert.equal(gate.update(0.5, player, coins, true), false);
+  assert.equal(gate.update(0.5, player, coins), false);
   assert.equal(gate.phase, 'entering');
-  assert.equal(gate.update(0.7, player, coins, true), false);
-  assert.equal(gate.update(0.05, player, coins, true), true);
+  assert.equal(gate.update(0.7, player, coins), false);
+  assert.equal(gate.update(0.05, player, coins), true);
 });
 
 test('leaving the threshold resets an opening gate', () => {
@@ -33,6 +34,36 @@ test('leaving the threshold resets an opening gate', () => {
   assert.equal(gate.phase, 'charging');
   assert.equal(gate.phaseTime, 0);
   assert.equal(gate.progress({ count: 0, total: 0 }), 0);
+});
+
+test('portal notice explains every remaining condition and successful entry', () => {
+  const gate = new ReachGoal({ x: 100, y: 100, width: 80, height: 96,
+    portalOffsetY: 38, portalRadius: 40, openFraction: 0.7 });
+  const coins = { count: 6, total: 10 };
+  assert.match(goalNotice(gate, coins), /1 монет/);
+  coins.count = 7;
+  assert.match(goalNotice(gate, coins), /открывается/);
+  gate.phase = 'open';
+  assert.match(goalNotice(gate, coins), /войди в арку/);
+  gate.phase = 'entering';
+  assert.equal(goalNotice(gate, coins), '');
+  // The feet can reach the visible opening while the body is below its center.
+  assert.equal(gate.goal.hits({ x: 75, y: 156, width: 32, height: 40 }), true);
+});
+
+test('completed final portal entry sets the victory state', () => {
+  const gate = new ReachGoal({ x: 100, y: 100, width: 80, height: 96,
+    portalOffsetY: 38, portalRadius: 40, openFraction: 0.7 });
+  const player = { x: 120, y: 156, width: 32, height: 40 };
+  const coins = { count: 7, total: 10 };
+  const game = { stageIndex: 2, stageCount: 3, player, reachGoal: gate,
+    collectCoins: coins, winLose: new WinLose(),
+    sounds: { play() {} }, runBestBefore: 0, endAttempt() { this.ended = true; } };
+  assert.equal(gate.update(0.9, player, coins), false);
+  assert.equal(gate.phase, 'entering');
+  if (gate.update(0.75, player, coins)) Game.prototype.finishWin.call(game);
+  assert.equal(game.winLose.state, 'won');
+  assert.equal(game.ended, true);
 });
 
 test('portal keeps its proportions and frames the gauge on both sides', () => {

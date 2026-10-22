@@ -80,7 +80,7 @@ test('ordinary enemy abilities change their sprite and attack animation', () => 
   assert.equal(enemy.visualVariant, 0);
 });
 
-test('boss has 15 HP, multiple random skills, amplified attacks, and gates the portal', () => {
+test('boss has 15 HP and amplified attacks, but does not gate the portal', () => {
   const level = generateLevel(settings.level, 123);
   const enemies = new Enemies(level.enemies, level.platforms,
     settings.enemyAbilities, settings.bossAbilities);
@@ -103,10 +103,10 @@ test('boss has 15 HP, multiple random skills, amplified attacks, and gates the p
   const portalPlayer = { x: level.goal.x, y: level.goal.y,
     width: level.goal.width, height: level.goal.height };
   assert.equal(enemies.bossDefeated, false);
-  assert.equal(goal.reachedBy(portalPlayer, coins, enemies.bossDefeated), false);
+  assert.equal(goal.reachedBy(portalPlayer, coins), true);
   boss.takeDamage(14, 0);
   assert.equal(boss.health, 1);
   boss.takeDamage(1, 0);
   assert.equal(enemies.bossDefeated, true);
-  assert.equal(goal.reachedBy(portalPlayer, coins, enemies.bossDefeated), true);
+  assert.equal(goal.reachedBy(portalPlayer, coins), true);
 });

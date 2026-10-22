@@ -5,6 +5,7 @@ export class Goal extends Entity {
     super(bounds);
     this.portalRadius = bounds.portalRadius;
     this.portalOffsetY = bounds.portalOffsetY;
+    this.openFraction = bounds.openFraction;
   }
 
   hits(player) {

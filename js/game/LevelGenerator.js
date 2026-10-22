@@ -160,11 +160,10 @@ export function generateLevel(template, requestedSeed) {
 
   const bossRoute = [];
   const bossRules = rules.bossRoute;
-  let previousBossPlatform = route.at(-2);
-  for (let step = 0; step < bossRules.steps; step++) {
+  let previousBossPlatform = route.at(-1);
+  for (let step = 0; step < (bossRules.enabled === false ? 0 : bossRules.steps); step++) {
     const platform = {
-      x: step === 0 ? route.at(-1).x
-        : previousBossPlatform.x + previousBossPlatform.width + bossRules.gap,
+      x: previousBossPlatform.x + previousBossPlatform.width + bossRules.gap,
       y: previousBossPlatform.y - (step === 0 ? bossRules.firstRise : bossRules.rise),
       width: bossRules.stepWidth, height: rules.platformHeight,
     };
@@ -174,22 +173,24 @@ export function generateLevel(template, requestedSeed) {
       width: rules.coinSize, height: rules.coinSize });
     previousBossPlatform = platform;
   }
-  const arena = {
+  const arena = bossRules.enabled === false ? null : {
     x: previousBossPlatform.x + previousBossPlatform.width + bossRules.arenaGap,
     y: previousBossPlatform.y - bossRules.arenaRise,
     width: bossRules.arenaWidth, height: rules.platformHeight,
   };
-  const arenaIndex = platforms.length;
-  bossRoute.push(arenaIndex);
-  platforms.push(arena);
+  const arenaIndex = arena ? platforms.length : null;
+  if (arena) {
+    bossRoute.push(arenaIndex);
+    platforms.push(arena);
+  }
 
   const finishRules = rules.finishRoute;
   const finishRoute = [];
-  let previousFinishPlatform = route.at(-1);
+  let previousFinishPlatform = arena ?? route.at(-1);
   for (let step = 0; step < finishRules.steps; step++) {
     const platform = {
       x: previousFinishPlatform.x + previousFinishPlatform.width + finishRules.gap,
-      y: route.at(-1).y,
+      y: previousFinishPlatform.y + (arena ? finishRules.arenaStepDrop : 0),
       width: finishRules.stepWidth, height: rules.platformHeight,
     };
     finishRoute.push(platforms.length);
@@ -199,9 +200,9 @@ export function generateLevel(template, requestedSeed) {
     previousFinishPlatform = platform;
   }
   const finish = {
-    x: Math.max(arena.x + arena.width + finishRules.arenaExitGap,
-      previousFinishPlatform.x + previousFinishPlatform.width + finishRules.gap),
-    y: route.at(-1).y,
+    x: previousFinishPlatform.x + previousFinishPlatform.width
+      + (arena ? finishRules.arenaExitGap : finishRules.gap),
+    y: previousFinishPlatform.y + (arena ? finishRules.arenaStepDrop : 0),
     width: finishRules.platformWidth, height: rules.platformHeight,
   };
   const finishIndex = platforms.length;
@@ -210,11 +211,25 @@ export function generateLevel(template, requestedSeed) {
 
   const chestIndices = [...new Set(rules.chestIndices.map(sharedIndex))];
   const chestPlatforms = new Set(chestIndices);
-  const enemyIndices = pickFromZones(random, rules.enemyZones, new Set(chestPlatforms), sharedIndex);
-  const hazardIndices = pickFromZones(random, rules.hazardZones, new Set(chestPlatforms));
-  const risingIndices = pickFromZones(random, rules.risingZones, new Set(chestPlatforms));
-  const hangingIndices = pickFromZones(random, rules.hangingZones);
-  const occupied = new Set([...chestPlatforms, ...enemyIndices, ...hazardIndices,
+  const healIndices = [];
+  const healReserved = new Set(chestPlatforms);
+  for (const zone of rules.healZones ?? []) {
+    const available = Array.from({ length: rules.mainPlatforms - 2 }, (_, offset) => offset + 1)
+      .filter((index) => sharedIndex(index) === index && !healReserved.has(index));
+    const preferred = available.filter((index) => index >= zone[0] && index <= zone[1]);
+    const candidates = preferred.length ? preferred : available.sort((left, right) =>
+      Math.abs(left - (zone[0] + zone[1]) / 2)
+      - Math.abs(right - (zone[0] + zone[1]) / 2)).slice(0, 1);
+    if (!candidates.length) break;
+    const index = candidates[between(random, 0, candidates.length - 1)];
+    healIndices.push(index);
+    healReserved.add(index);
+  }
+  const enemyIndices = pickFromZones(random, rules.enemyZones, new Set(healReserved), sharedIndex);
+  const hazardIndices = pickFromZones(random, rules.hazardZones, new Set(healReserved));
+  const risingIndices = pickFromZones(random, rules.risingZones, new Set(healReserved));
+  const hangingIndices = pickFromZones(random, rules.hangingZones, new Set(healReserved));
+  const occupied = new Set([...healReserved, ...enemyIndices, ...hazardIndices,
     ...risingIndices, ...hangingIndices]);
   const boostChosen = new Set();
   const boostIndices = Object.fromEntries(Object.entries(rules.boostZones).map(([kind, zone]) => {
@@ -245,10 +260,11 @@ export function generateLevel(template, requestedSeed) {
       visualVariant: index % 4,
       animationPhase: random() * Math.PI * 2,
       maxHealth: rules.enemy.health[index],
+      abilityChance: rules.enemy.abilityChances?.[index],
       abilityInterval: between(random, ...rules.enemy.abilityIntervalTenths) / 10,
     };
   });
-  enemies.push({
+  if (arena) enemies.push({
     platformIndex: arenaIndex,
     x: arena.x + bossRules.bossOffsetX,
     width: bossRules.bossWidth, height: bossRules.bossHeight,
@@ -291,14 +307,25 @@ export function generateLevel(template, requestedSeed) {
       route[sharedIndex(index)].surface = surface;
     }
   }
+  for (const platform of platforms)
+    platform.appearance = ['ice', 'swamp'].includes(platform.surface)
+      ? platform.surface : rules.appearance ?? 'moss';
   const boostPickups = Object.fromEntries(Object.entries(boostIndices).map(([kind, index]) => {
     const platform = route[index];
     return [kind, { x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
       y: platform.y - rules.pickup.lift, width: rules.pickup.size, height: rules.pickup.size }];
   }));
+  for (const [order, index] of healIndices.entries()) {
+    const platform = route[index];
+    boostPickups[order === 0 ? 'heal' : `heal${order + 1}`] = {
+      x: platform.x + platform.width - rules.pickup.size - rules.pickup.edgeInset,
+      y: platform.y - rules.pickup.lift,
+      width: rules.pickup.size, height: rules.pickup.size,
+    };
+  }
   const goal = { ...template.goal,
     x: finish.x + finish.width - template.goal.width - finishRules.goalInset,
-    y: finish.y - template.goal.height, requiresBoss: true };
+    y: finish.y - template.goal.height };
 
   return {
     ...template, seed, platforms, coins, enemies, hazard, risingSpikes, hangingSpikes,

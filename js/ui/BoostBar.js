@@ -6,10 +6,11 @@ export class BoostBar {
     this.canvasWidth = canvasWidth;
   }
 
-  render(ctx, boosts, image) {
+  render(ctx, boosts, image, yOverride = null) {
     const active = Object.entries(boosts.remaining).filter(([, time]) => time > 0);
     if (!active.length) return;
-    const { size, gap, y, colors } = this.ui.boosts;
+    const { size, gap, colors } = this.ui.boosts;
+    const y = yOverride ?? this.ui.boosts.y;
     const startX = (this.canvasWidth - active.length * size - (active.length - 1) * gap) / 2;
     active.forEach(([kind, time], index) => {
       const x = startX + index * (size + gap);

@@ -1,4 +1,4 @@
-import { drawAtlasCell, drawGridCell, drawSheetFrame } from './sprites.js';
+import { drawAtlasCell, drawSheetFrame } from './sprites.js';
 import { drawNineSlice } from './uiImage.js';
 
 export function drawChest(ctx, chest, time, art, hell = false, image) {
@@ -17,7 +17,9 @@ export function drawChest(ctx, chest, time, art, hell = false, image) {
 
 const CARD_ART_IDS = ['health', 'damage', 'speed', 'healing', 'bow', 'sword',
   'fireball', 'ice', 'companion', 'simplify', 'complicate', 'reroll', 'noBoss',
-  'blessing', 'fakeFlight', 'fakeLight', 'wall', 'arrows', 'holes', 'freeze',
+  'blessing', 'fakeFlight', 'fakeLight', 'fakeInvulnerability', 'fakeTeleport',
+  'fakeMindReading', 'fakePastPrediction', 'fakeUnderwaterBreathing',
+  'fakeInvisibility', 'wall', 'arrows', 'holes', 'freeze',
   'enemies', 'spikes'];
 
 function drawCardArtwork(ctx, card, rect, images) {
@@ -113,41 +115,6 @@ export function drawCard(ctx, card, rect, color, font, palette, rarityLabel,
       (rect.width - 32) * holdFraction, 4);
   }
   ctx.restore();
-}
-export function drawCardIcon(ctx, id, x, y, color, font, images) {
-  const pickups = { health: 0, speed: 1, damage: 2 };
-  const skills = {
-    sword: [0, 0], fireball: [1, 0], ice: [2, 0],
-    bow: [0, 1], healing: [2, 1]
-  };
-  const relics = {
-    simplify: images.objects?.[2]?.[1],
-    complicate: images.objects?.[0]?.[2],
-    reroll: images.objects?.[0]?.[0],
-    noBoss: images.objects?.[2]?.[1],
-    blessing: images.pickups?.[2]?.[0],
-    fakeFlight: images.effects?.[1]?.[0],
-    fakeLight: images.objects?.[2]?.[1],
-    wall: images.objects?.[2]?.[2],
-    arrows: images.effects?.[1]?.[0],
-    holes: images.objects?.[1]?.[0],
-    freeze: images.effects?.[0]?.[2],
-    enemies: images.objects?.[0]?.[2],
-    spikes: images.objects?.[2]?.[0],
-  };
-  if (id in pickups) {
-    drawGridCell(ctx, images.pickups, pickups[id], 2, 4, 3, x, y, 62, 54);
-  } else if (id in skills) {
-    drawAtlasCell(ctx, images.effects, ...skills[id], x, y, 62, 54);
-  } else if (id === 'companion') {
-    const frame = images.golem.frames[0];
-    ctx.drawImage(frame.image ?? images.golem.image, frame.x, frame.y, frame.w, frame.h,
-      x + 5, y, 52, 54);
-  } else if (relics[id]) {
-    ctx.drawImage(relics[id], x, y, 62, 54);
-  } else if (images.objects?.[0]?.[0]) {
-    ctx.drawImage(images.objects[0][0], x, y, 62, 54);
-  }
 }
 
 export function drawRarityBanner(ctx, card, color, rarityLabel, title,

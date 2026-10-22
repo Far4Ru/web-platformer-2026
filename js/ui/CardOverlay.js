@@ -1,9 +1,9 @@
 import { drawCard, drawChest } from '../render/cards.js';
 
 const SKILL_EFFECTS = {
-  healing: ['Лечит 1 HP каждые 15 с', 'Лечит 2 HP каждые 12 с',
-    'Лечит 3 HP каждые 10 с'],
-  bow: ['Точность стрел: 15%', 'Точность стрел: 40%',
+  healing: ['Лечит 1 HP каждые 12 с', 'Лечит 2 HP каждые 9,6 с',
+    'Лечит 3 HP каждые 8 с'],
+  bow: ['Точность стрел: 65%', 'Точность стрел: 85%',
     'Точность стрел: 100%'],
   sword: ['Короткий удар мечом', 'Удар мечом дальше',
     'Два удара подряд'],
@@ -29,17 +29,40 @@ export class CardOverlay {
     this.settings = settings;
     this.world = world;
     this.images = images;
+    this.viewport = null;
+  }
+
+  layout(viewport) {
+    this.viewport = viewport;
+    const portrait = viewport.right - viewport.left < this.world.width;
+    this.portrait = portrait;
+    this.portraitOffset = portrait
+      ? (viewport.bottom - viewport.top - this.world.height) / 2 : 0;
+    if (!portrait) return;
+    const stackHeight = this.ui.cards.height * 3 + 20 + 12
+      + this.ui.cards.reroll.height;
+    this.choiceTop = viewport.top + Math.max(50,
+      (viewport.bottom - viewport.top - stackHeight) / 2);
+  }
+
+  rerollRect() {
+    if (!this.portrait) return this.ui.cards.reroll;
+    const button = this.ui.cards.reroll;
+    return { ...button, x: (this.world.width - button.width) / 2,
+      y: this.choiceTop + this.ui.cards.height * 3 + 20 + 12 };
   }
 
   rect(index) {
     const { x, y, width, height, gap } = this.ui.cards;
+    if (this.portrait) return { x: (this.world.width - width) / 2,
+      y: this.choiceTop + index * (height + 10), width, height };
     return { x: x + index * (width + gap), y, width, height };
   }
 
   hit(point, chests) {
     if (chests.phase === 'hellCard') return { kind: 'choose', index: 0 };
     if (chests.phase !== 'choice') return null;
-    const button = this.ui.cards.reroll;
+    const button = this.rerollRect();
     if (chests.rerolls > 0 && point.x >= button.x && point.x <= button.x + button.width
       && point.y >= button.y && point.y <= button.y + button.height) return { kind: 'reroll' };
     const index = chests.offers.findIndex((_, i) => {
@@ -53,8 +76,10 @@ export class CardOverlay {
   render(ctx, chests, game, time, viewport = {
     left: 0, top: 0, right: this.world.width, bottom: this.world.height,
   }) {
+    this.layout(viewport);
     if (!chests.active) return;
     const palette = this.ui.cards.colors;
+    const centerOffset = this.portraitOffset;
     ctx.save();
     ctx.fillStyle = palette.veil;
     ctx.fillRect(viewport.left, viewport.top,
@@ -63,17 +88,19 @@ export class CardOverlay {
     ctx.fillStyle = palette.text;
     ctx.font = `32px ${this.ui.font}`;
     if (chests.phase === 'opening') {
-      ctx.fillText(this.settings.uiText.opening, this.world.width / 2, 190);
-      drawChest(ctx, { x: 453, y: 230, width: 54, height: 54 },
+      ctx.fillText(this.settings.uiText.opening, this.world.width / 2, 190 + centerOffset);
+      drawChest(ctx, { x: 453, y: 230 + centerOffset, width: 54, height: 54 },
         -0.001 - Math.max(0, this.settings.openingDuration - chests.timer), this.settings.chestArt, false, this.images.chestAnimation);
       ctx.font = `22px ${this.ui.font}`;
-      ctx.fillText(this.settings.uiText.openingHint, this.world.width / 2, 345);
+      ctx.fillText(this.settings.uiText.openingHint, this.world.width / 2,
+        345 + centerOffset);
     } else if (chests.phase === 'transform') {
-      ctx.fillText(this.settings.uiText.transform, this.world.width / 2, 240);
-      drawChest(ctx, { x: 453, y: 267, width: 54, height: 54 },
+      ctx.fillText(this.settings.uiText.transform, this.world.width / 2,
+        240 + centerOffset);
+      drawChest(ctx, { x: 453, y: 267 + centerOffset, width: 54, height: 54 },
         -0.001 - Math.max(0, this.settings.transformDuration - chests.timer), this.settings.chestArt, true, this.images.chestAnimation);
       ctx.fillStyle = this.settings.rarityColors.hell;
-      ctx.fillText('!', this.world.width / 2, 300);
+      ctx.fillText('!', this.world.width / 2, 300 + centerOffset);
     } else if (chests.phase === 'reward') {
       const card = chests.rewardCard;
       const elapsed = this.settings.rewardBannerDuration - chests.timer;
@@ -93,16 +120,16 @@ export class CardOverlay {
       const progress = Math.max(0, Math.min(1, elapsed / 0.72));
       const eased = progress * progress * (3 - 2 * progress);
       const source = card.rarity === 'hell'
-        ? { x: 364, y: 130, width: 232, height: 252 }
+        ? { x: 364, y: 130 + centerOffset, width: 232, height: 252 }
         : this.rect(chests.rewardIndex);
-      const target = { x: 330, y: 106, width: 300, height: 326 };
+      const target = { x: 330, y: 106 + centerOffset, width: 300, height: 326 };
       const rect = Object.fromEntries(Object.keys(target).map((key) =>
         [key, source[key] + (target[key] - source[key]) * eased]));
       const rayReveal = Math.max(0, Math.min(1, (elapsed - 0.72) / 0.35));
       if (rayReveal > 0) {
         ctx.save();
         ctx.globalAlpha = rayReveal * 0.94;
-        ctx.drawImage(this.images.cardRewardRays, 205, 0, 550, 550);
+        ctx.drawImage(this.images.cardRewardRays, 205, centerOffset, 550, 550);
         ctx.restore();
       }
       const level = chests.rewardLevel;
@@ -117,17 +144,19 @@ export class CardOverlay {
         true, 0, time, this.images);
       ctx.restore();
     } else if (chests.phase === 'hellCard') {
-      ctx.fillText(this.settings.uiText.hell, this.world.width / 2, 80);
+      ctx.fillText(this.settings.uiText.hell, this.world.width / 2,
+        80 + centerOffset);
       const card = { ...chests.hellCard, rarity: 'hell' };
-      drawCard(ctx, card, { x: 364, y: 130, width: 232, height: 252 },
+      drawCard(ctx, card, { x: 364, y: 130 + centerOffset, width: 232, height: 252 },
         this.settings.rarityColors.hell, this.ui.font, palette, this.settings.rarityLabels.hell,
         '', true, chests.holdProgress / this.settings.confirmHoldSeconds, time, this.images);
       ctx.font = `18px ${this.ui.font}`;
       ctx.fillStyle = palette.text;
-      ctx.drawImage(this.images.speechKeyUp, 370, 405, 31, 31);
-      ctx.fillText('Подтвердить', 570, 426);
+      ctx.drawImage(this.images.speechKeyUp, 370, 405 + centerOffset, 31, 31);
+      ctx.fillText('Подтвердить', 570, 426 + centerOffset);
     } else {
-      ctx.fillText(this.settings.uiText.choose, this.world.width / 2, 82);
+      ctx.fillText(this.settings.uiText.choose, this.world.width / 2,
+        this.portrait ? this.choiceTop - 18 : 82);
       chests.offers.forEach((card, index) => {
         const level = card.kind === 'skill' ? game[`${card.id}Skill`].level + 1 : 0;
         drawCard(ctx, cardAtLevel(card, level), this.rect(index),
@@ -139,7 +168,7 @@ export class CardOverlay {
           time, this.images);
       });
       if (chests.rerolls > 0) {
-        const button = this.ui.cards.reroll;
+        const button = this.rerollRect();
         ctx.drawImage(this.images.mayaButton, button.x, button.y, button.width, button.height);
         ctx.fillStyle = '#ffe9ad';
         ctx.font = `19px ${this.ui.font}`;
@@ -153,7 +182,7 @@ export class CardOverlay {
             (button.width - 24) * Math.min(1, chests.rerollProgress / this.settings.confirmHoldSeconds), 4);
         }
       }
-      this.drawChoiceHints(ctx, palette);
+      if (!this.portrait) this.drawChoiceHints(ctx, palette);
     }
     ctx.restore();
   }

@@ -62,8 +62,11 @@ test('full-screen renderer keeps 960 by 540 game coordinates centered', () => {
   canvas.height = 1200;
   canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 600, height: 1200 });
   renderer.render({ render(_ctx, _world, _time, visible) { viewport = visible; } }, 0);
-  assert(viewport.top < 0 && viewport.bottom > 540);
-  assert.deepEqual(renderer.toWorld(300, 600), { x: 480, y: 270 });
+  assert.equal(viewport.right - viewport.left, 500);
+  assert(Math.abs(viewport.top) < 1e-10);
+  assert.equal(viewport.bottom, 1000);
+  assert.deepEqual(renderer.toWorld(300, 600), { x: 480, y: 500 });
+  assert.deepEqual(renderer.toWorld(0, 0), { x: viewport.left, y: 0 });
 });
 
 test('fake platform breaks on the first swept contact and finishes its animation', () => {
@@ -159,6 +162,27 @@ test('companion continues to the landing point instead of stopping in midair', (
   for (let i = 0; i < 45; i++) skill.update(0.016, player, enemies, shots, game);
   assert.equal(skill.companion.grounded, true);
   assert.equal(skill.companion.y, 60);
+});
+
+test('companion does not snap backwards when the player turns around', () => {
+  const platforms = new Platforms([{ x: 0, y: 100, width: 500, height: 24 }]);
+  const player = { x: 100, y: 60, width: 30, height: 40, facing: 1,
+    grounded: true, groundPlatform: platforms.items[0] };
+  const skill = new CompanionSkill({ distance: 62 });
+  skill.level = 1;
+  skill.history = [{ x: 38, y: 60, facing: 1, grounded: true, length: 0 }];
+  const enemies = { items: [], projectiles: [], spikes: [] };
+  const shots = { add() {} };
+  const game = { platforms };
+  skill.update(0.016, player, enemies, shots, game);
+  player.x = 180;
+  skill.update(0.016, player, enemies, shots, game);
+  const progress = skill.routeProgress;
+  const x = skill.companion.x;
+  player.facing = -1;
+  skill.update(0.016, player, enemies, shots, game);
+  assert(skill.routeProgress >= progress);
+  assert(skill.companion.x >= x);
 });
 
 test('projectile image keeps its native aspect ratio without changing hitbox', () => {

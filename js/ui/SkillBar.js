@@ -6,13 +6,14 @@ export class SkillBar {
     this.canvasWidth = canvasWidth;
   }
 
-  render(ctx, game) {
+  render(ctx, game, yOverride = null) {
     const skills = ['healing', 'sword', 'companion', 'fireball', 'ice', 'bow']
       .map((kind) => ({ kind, skill: game[`${kind}Skill`] }))
       .filter(({ skill }) => skill.level > 0);
     if (!skills.length) return;
 
-    const { size, gap, y, colors } = this.ui.skills;
+    const { size, gap, colors } = this.ui.skills;
+    const y = yOverride ?? this.ui.skills.y;
     const startX = (this.canvasWidth - skills.length * size - (skills.length - 1) * gap) / 2;
     skills.forEach(({ kind, skill }, index) => {
       const rect = { x: startX + index * (size + gap), y, width: size, height: size };

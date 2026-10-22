@@ -6,7 +6,7 @@ import { HellMode } from '../js/game/features/HellMode.js';
 import { PlayerHealth } from '../js/game/features/PlayerHealth.js';
 import { PlayerMovement } from '../js/game/features/PlayerMovement.js';
 import { Platforms } from '../js/game/features/Platforms.js';
-import { drawCard, drawCardIcon, drawHellWall, drawRarityBanner } from '../js/render/cards.js';
+import { drawCard, drawHellWall, drawRarityBanner } from '../js/render/cards.js';
 import { CardOverlay, cardAtLevel } from '../js/ui/CardOverlay.js';
 
 const settings = JSON.parse(readFileSync(new URL('../assets/json/game.json', import.meta.url), 'utf8'));
@@ -21,8 +21,8 @@ test('card reward keeps the chosen offer for its center animation and shows only
   const bow = settings.cards.entries.find((card) => card.id === 'bow');
   chests.offers = [settings.cards.entries[0], bow, settings.cards.entries[1]];
   chests.phase = 'choice';
-  assert.equal(cardAtLevel(bow, 1).description, 'Точность стрел: 15%');
-  assert.equal(cardAtLevel(bow, 2).description, 'Точность стрел: 40%');
+  assert.equal(cardAtLevel(bow, 1).description, 'Точность стрел: 65%');
+  assert.equal(cardAtLevel(bow, 2).description, 'Точность стрел: 85%');
   assert.equal(cardAtLevel(bow, 3).description, 'Точность стрел: 100%');
   assert(chests.choose(1, run));
   assert.equal(chests.rewardIndex, 1);
@@ -126,6 +126,121 @@ test('only one chest can turn infernal; blessing prevents a future transformatio
   assert.equal(blessed.phase, 'choice');
 });
 
+test('new skills remain available and speed bonuses stop at twice base speed', () => {
+  const run = game();
+  const cards = { ...settings.cards, rarityWeights: Object.fromEntries(
+    Object.keys(settings.cards.rarityWeights).map((rarity) => [rarity, 0])) };
+  const chests = new Chests(chestBounds, cards, () => 0);
+  chests.drawOffers(run);
+  assert(chests.offers.some((card) => card.kind === 'skill'));
+  const speed = settings.cards.entries.find((card) => card.id === 'speed');
+  chests.apply(speed, run);
+  chests.apply(speed, run);
+  chests.apply(speed, run);
+  assert.equal(run.cardBonuses.speed, 2);
+  const damage = settings.cards.entries.find((card) => card.id === 'damage');
+  chests.apply(damage, run);
+  chests.apply(damage, run);
+  assert.equal(run.cardBonuses.damage, 1);
+  chests.drawOffers(run);
+  assert(!chests.offers.some((card) => card.id === 'speed'));
+  assert(!chests.offers.some((card) => card.id === 'damage'));
+});
+
+test('rarity weights describe tiers rather than multiplying by cards in each tier', () => {
+  let seed = 12345;
+  const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0)
+    / 4294967296);
+  const run = game();
+  for (const kind of ['healing', 'sword', 'companion', 'fireball', 'ice', 'bow'])
+    run[`${kind}Skill`].level = 3;
+  const chests = new Chests(chestBounds, settings.cards, random);
+  const counts = { common: 0, rare: 0, epic: 0, legendary: 0 };
+  const realCards = settings.cards.entries.filter((card) => card.kind !== 'fake');
+  for (let index = 0; index < 10000; index++) {
+    counts[chests.pickWeighted(realCards).rarity]++;
+  }
+  for (const [rarity, weight] of Object.entries(settings.cards.rarityWeights))
+    assert(Math.abs(counts[rarity] / 100 - weight) < 2,
+      `${rarity}: got ${counts[rarity] / 100}% instead of ${weight}%`);
+});
+
+test('fake cards appear in about half of all chests without adding offer slots', () => {
+  let seed = 98765;
+  const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0)
+    / 4294967296);
+  const chests = new Chests(chestBounds, settings.cards, random);
+  const found = new Set();
+  for (const skillLevel of [0, 1, 3]) {
+    const run = game();
+    for (const kind of ['healing', 'sword', 'companion', 'fireball', 'ice', 'bow'])
+      run[`${kind}Skill`].level = skillLevel;
+    let fakeChests = 0;
+    for (let index = 0; index < 10000; index++) {
+      chests.drawOffers(run);
+      assert.equal(chests.offers.length, settings.cards.choiceCount);
+      const fakes = chests.offers.filter((card) => card.kind === 'fake');
+      assert(fakes.length <= 1);
+      if (fakes.length) {
+        fakeChests++;
+        found.add(fakes[0].id);
+      }
+    }
+    const normalChestChance = fakeChests / 10000;
+    assert(normalChestChance > 0.50 && normalChestChance < 0.56,
+      `fake chance at skill level ${skillLevel}: ${normalChestChance}`);
+  }
+  assert.deepEqual(found, new Set([
+    ...settings.cards.entries.filter((card) => card.kind === 'fake'),
+    ...settings.cards.fakeVariants,
+  ].map((card) => card.id)));
+});
+
+test('new fake superpowers do not change the run', () => {
+  const run = game();
+  const chests = new Chests(chestBounds, settings.cards);
+  const before = {
+    health: run.playerHealth.value,
+    maxHealth: run.playerHealth.settings.max,
+    bonuses: { ...run.cardBonuses },
+    coins: run.collectCoins.count,
+    enemyHealth: run.enemies.items[0].health,
+    skills: ['healing', 'sword', 'companion', 'fireball', 'ice', 'bow']
+      .map((kind) => run[`${kind}Skill`].level),
+  };
+  for (const card of settings.cards.fakeVariants) chests.apply(card, run);
+  assert.deepEqual({
+    health: run.playerHealth.value,
+    maxHealth: run.playerHealth.settings.max,
+    bonuses: { ...run.cardBonuses },
+    coins: run.collectCoins.count,
+    enemyHealth: run.enemies.items[0].health,
+    skills: ['healing', 'sword', 'companion', 'fireball', 'ice', 'bow']
+      .map((kind) => run[`${kind}Skill`].level),
+  }, before);
+});
+
+test('each new fake superpower has its own loaded card illustration', () => {
+  const draws = [];
+  const images = {
+    cardCommon: { width: 457, height: 507 },
+    cardArt: settings.images.cardArt.map((path) => ({ path, width: 768, height: 256 })),
+  };
+  const ctx = {
+    save() {}, restore() {},
+    drawImage(image) { draws.push(image.path); },
+    fillText() {}, measureText(text) { return { width: text.length * 7 }; },
+  };
+  for (const card of settings.cards.fakeVariants) {
+    const path = `assets/ui/card-art-${card.id}.png`;
+    assert(readFileSync(new URL(`../${path}`, import.meta.url)).length > 1000);
+    draws.length = 0;
+    drawCard(ctx, card, { x: 0, y: 0, width: 232, height: 252 },
+      '#fff', 'serif', {}, 'ОБЫЧНАЯ', '', false, 0, 0, images);
+    assert(draws.includes(path), `missing card artwork: ${card.id}`);
+  }
+});
+
 test('card confirmation requires 0.5 uninterrupted seconds of holding', () => {
   const run = game();
   const chests = new Chests(chestBounds, { ...settings.cards, hellChance: 0 }, () => 0);
@@ -202,27 +317,6 @@ test('held card grows while its confirmation progress is shown', () => {
       effects: [[{ width: 512, height: 341 }]] });
   assert(scales[0][0] > 1);
   assert(fills.some((rect) => rect[2] === 100));
-});
-
-test('card icons use the image that belongs to their effect', () => {
-  const draws = [];
-  const ctx = {
-    drawImage(image) { draws.push(image); },
-    save() {}, restore() {}, fillText() {},
-  };
-  const effects = Array.from({ length: 3 }, (_, row) =>
-    Array.from({ length: 3 }, (_, column) => `effect-${row}-${column}`));
-  const pickups = [[], [], ['health', 'speed', 'damage']];
-  const golem = { frames: [{ image: 'golem', x: 0, y: 0, w: 10, h: 10 }] };
-  const images = { effects, pickups, golem };
-  for (const id of ['health', 'speed', 'damage', 'sword', 'fireball',
-    'ice', 'bow', 'healing', 'companion']) drawCardIcon(ctx, id, 0, 0, '#fff', 'serif', images);
-  assert.deepEqual(draws, [
-    'health', 'speed', 'damage', 'effect-0-0', 'effect-0-1',
-    'effect-0-2', 'effect-1-0', 'effect-1-2', 'golem',
-  ]);
-  for (const card of [...settings.cards.entries, ...settings.cards.hellEntries])
-    assert.doesNotThrow(() => drawCardIcon(ctx, card.id, 0, 0, '#fff', 'serif', images));
 });
 
 test('hell freeze still lets gravity act; ice slides and swamp slows', () => {

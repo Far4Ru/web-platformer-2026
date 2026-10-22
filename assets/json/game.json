@@ -1,8 +1,16 @@
 {
   "storageKey": "star-coin-best",
   "music": {
-    "src": "assets/music/background.mp3",
-    "volume": 0.4
+    "volume": 0.28,
+    "preload": "forest",
+    "tracks": {
+      "forest": { "src": "assets/music/forest-theme.mp3", "volume": 0.42, "loop": true },
+      "swamp": { "src": "assets/music/swamp-theme.mp3", "volume": 0.36, "loop": true },
+      "temple": { "src": "assets/music/temple-theme.mp3", "volume": 0.4, "loop": true },
+      "boss": { "src": "assets/music/boss-theme.mp3", "volume": 0.42, "loop": true },
+      "victory": { "src": "assets/music/victory-theme.wav", "volume": 0.32, "loop": false },
+      "defeat": { "src": "assets/music/defeat-theme.mp3", "volume": 0.28, "loop": false }
+    }
   },
   "sounds": {
     "jump": {
@@ -36,7 +44,33 @@
     "win": {
       "src": "assets/sounds/win.wav",
       "volume": 0.32
-    }
+    },
+    "portalOpen": { "src": "assets/sounds/portal-open.wav", "volume": 0.25 },
+    "portalEnter": { "src": "assets/sounds/portal-enter.wav", "volume": 0.25 },
+    "stageComplete": { "src": "assets/sounds/stage-complete.wav", "volume": 0.28 },
+    "lose": { "src": "assets/sounds/lose.wav", "volume": 0.28 },
+    "boostSpeed": { "src": "assets/sounds/boost-speed.wav", "volume": 0.2 },
+    "boostDamage": { "src": "assets/sounds/boost-damage.wav", "volume": 0.2 },
+    "boostHeal": { "src": "assets/sounds/boost-heal.wav", "volume": 0.22 },
+    "healSkill": { "src": "assets/sounds/heal-skill.wav", "volume": 0.2 },
+    "fireballCast": { "src": "assets/sounds/fireball-cast.wav", "volume": 0.16, "minInterval": 0.12 },
+    "fireballHit": { "src": "assets/sounds/fireball-hit.wav", "volume": 0.18, "minInterval": 0.08 },
+    "iceCast": { "src": "assets/sounds/ice-cast.wav", "volume": 0.17, "minInterval": 0.12 },
+    "iceHit": { "src": "assets/sounds/ice-hit.wav", "volume": 0.18, "minInterval": 0.08 },
+    "bowShot": { "src": "assets/sounds/bow-shot.wav", "volume": 0.18, "minInterval": 0.12 },
+    "arrowHit": { "src": "assets/sounds/arrow-hit.wav", "volume": 0.16, "minInterval": 0.08 },
+    "swordHit": { "src": "assets/sounds/sword-hit.wav", "volume": 0.18, "minInterval": 0.08 },
+    "enemyCast": { "src": "assets/sounds/enemy-cast.wav", "volume": 0.14, "minInterval": 0.18 },
+    "bossCast": { "src": "assets/sounds/boss-cast.wav", "volume": 0.2, "minInterval": 0.25 },
+    "spikesTrigger": { "src": "assets/sounds/spikes-trigger.wav", "volume": 0.16, "minInterval": 0.15 },
+    "companionAttack": { "src": "assets/sounds/companion-attack.wav", "volume": 0.14, "minInterval": 0.15 },
+    "companionHurt": { "src": "assets/sounds/companion-hurt.wav", "volume": 0.18 },
+    "companionDown": { "src": "assets/sounds/companion-down.wav", "volume": 0.23 },
+    "fakeCard": { "src": "assets/sounds/fake-card.wav", "volume": 0.23 },
+    "hellCard": { "src": "assets/sounds/hell-card.wav", "volume": 0.25 },
+    "cardReroll": { "src": "assets/sounds/card-reroll.wav", "volume": 0.2 },
+    "land": { "src": "assets/sounds/land.wav", "volume": 0.12, "minInterval": 0.1 },
+    "uiConfirm": { "src": "assets/sounds/ui-confirm.wav", "volume": 0.14, "minInterval": 0.06 }
   },
   "particles": {
     "count": 7,
@@ -246,6 +280,12 @@
       "assets/ui/card-art-blessing.png",
       "assets/ui/card-art-fakeFlight.png",
       "assets/ui/card-art-fakeLight.png",
+      "assets/ui/card-art-fakeInvulnerability.png",
+      "assets/ui/card-art-fakeTeleport.png",
+      "assets/ui/card-art-fakeMindReading.png",
+      "assets/ui/card-art-fakePastPrediction.png",
+      "assets/ui/card-art-fakeUnderwaterBreathing.png",
+      "assets/ui/card-art-fakeInvisibility.png",
       "assets/ui/card-art-wall.png",
       "assets/ui/card-art-arrows.png",
       "assets/ui/card-art-holes.png",
@@ -278,19 +318,24 @@
         ]
       ]
     },
-    "jungle": "assets/images/jungle.png",
-    "temple": "assets/images/temple.png",
+    "jungle": "assets/images/jungle.jpg",
+    "swampRuins": "assets/images/swamp-ruins.jpg",
+    "temple": "assets/images/temple.jpg",
     "foliage": "assets/images/foliage-base.png",
     "earth": "assets/images/earth.png",
     "swampEarth": "assets/images/swamp-earth.webp",
     "iceEarth": "assets/images/ice-earth.png",
+    "ruinsEarth": "assets/images/ruins-earth.png",
+    "templeEarth": "assets/images/temple-earth.png",
     "grassWind": "assets/sprites/decor/grass-wind-v3.png",
     "vineWind": "assets/sprites/decor/vine-wind-v2.png",
     "surfaceDetails": "assets/sprites/decor/surface-details.png",
     "platformBases": [
       "assets/sprites/objects/moss-platform-base.png",
       "assets/sprites/objects/ice-platform-base.png",
-      "assets/sprites/objects/swamp-platform-base.png"
+      "assets/sprites/objects/swamp-platform-base.png",
+      "assets/sprites/objects/ruins-platform-base.png",
+      "assets/sprites/objects/temple-platform-base.png"
     ],
     "spikeVariants": [
       "assets/sprites/objects/stone-spike.png",
@@ -361,17 +406,28 @@
       [
         "assets/sprites/pickups/heal-potion.png",
         "assets/sprites/pickups/speed-boots.png",
-        "assets/sprites/pickups/damage-sword.png",
-        "assets/sprites/pickups/sparkles.png"
+        "assets/sprites/pickups/damage-sword.png"
       ]
     ],
     "panel": "assets/ui/panel_brown.png",
     "templePlaque": "assets/ui/temple-plaque.png",
     "templePlaqueOpen": "assets/ui/temple-plaque-open.png",
     "victoryHero": [
-      "assets/ui/victory-hero-1.png",
-      "assets/ui/victory-hero-2.png",
-      "assets/ui/victory-hero-3.png"
+      "assets/ui/victory-hero-01.png",
+      "assets/ui/victory-hero-02.png",
+      "assets/ui/victory-hero-03.png",
+      "assets/ui/victory-hero-04.png",
+      "assets/ui/victory-hero-05.png",
+      "assets/ui/victory-hero-06.png",
+      "assets/ui/victory-hero-07.png",
+      "assets/ui/victory-hero-08.png",
+      "assets/ui/victory-hero-09.png",
+      "assets/ui/victory-hero-10.png",
+      "assets/ui/victory-hero-11.png",
+      "assets/ui/victory-hero-12.png",
+      "assets/ui/victory-hero-13.png",
+      "assets/ui/victory-hero-14.png",
+      "assets/ui/victory-hero-15.png"
     ],
     "victoryTitle": "assets/ui/victory-title.svg",
     "defeatTitle": "assets/ui/defeat-title.svg",
@@ -383,7 +439,6 @@
     ],
     "recordBadge": "assets/ui/record-badge.svg",
     "panelDark": "assets/ui/panel_brown_dark.png",
-    "panelBorder": "assets/ui/panel_border_brown.png",
     "button": "assets/ui/button_brown.png",
     "mayaButton": "assets/ui/maya-button.png",
     "skillSlots": [
@@ -391,9 +446,6 @@
       "assets/ui/skill-slot-2.png",
       "assets/ui/skill-slot-3.png"
     ],
-    "buttonRed": "assets/ui/button_red.png",
-    "roundButton": "assets/ui/round_brown.png",
-    "iconPause": "assets/ui/icon-pause.png",
     "controlPause": "assets/ui/control-pause-new.png",
     "controlPlay": "assets/ui/control-play-new.png",
     "controlRestart": "assets/ui/control-restart-new.png",
@@ -402,17 +454,7 @@
     "controlLeft": "assets/ui/control-left.png",
     "controlRight": "assets/ui/control-right.png",
     "controlUp": "assets/ui/control-up.png",
-    "iconPlay": "assets/ui/icon-play.png",
-    "iconSound": "assets/ui/icon-sound.png",
-    "iconSoundOff": "assets/ui/icon-sound-off.png",
-    "iconRestart": "assets/ui/icon-restart.png",
-    "iconTrophy": "assets/ui/icon-trophy.png",
     "ancientTrophy": "assets/ui/ancient-trophy.png",
-    "keyLeft": "assets/ui/keyboard_arrow_left.png",
-    "keyRight": "assets/ui/keyboard_arrow_right.png",
-    "keyUp": "assets/ui/keyboard_arrow_up.png",
-    "keyDown": "assets/ui/keyboard_arrow_down.png",
-    "keySpace": "assets/ui/keyboard_space_icon.png",
     "speechLeft": "assets/ui/speech_left.png",
     "speechMiddle": "assets/ui/speech_middle.png",
     "speechRight": "assets/ui/speech_right.png",
@@ -610,7 +652,7 @@
   },
   "healingSkill": {
     "healAmount": 1,
-    "interval": 15,
+    "interval": 12,
     "beamDuration": 0.8,
     "art": {
       "halo": "#fff1ba",
@@ -625,7 +667,7 @@
     }
   },
   "swordSkill": {
-    "interval": 10,
+    "interval": 3,
     "attackDuration": 0.45,
     "damage": 1,
     "stunDuration": 0.5,
@@ -713,7 +755,7 @@
     "distance": 28
   },
   "fireballSkill": {
-    "interval": 20,
+    "interval": 6,
     "range": 580,
     "speed": 360,
     "damage": 1,
@@ -724,7 +766,7 @@
     }
   },
   "iceSkill": {
-    "interval": 25,
+    "interval": 8,
     "range": 520,
     "speed": 245,
     "lift": 80,
@@ -738,7 +780,7 @@
     }
   },
   "bowSkill": {
-    "interval": 5,
+    "interval": 3,
     "range": 650,
     "speed": 430,
     "gravity": 550,
@@ -776,9 +818,10 @@
     },
     "choiceCount": 3,
     "confirmHoldSeconds": 0.5,
-    "openingDuration": 1.2,
+    "openingDuration": 0.8,
     "rewardBannerDuration": 2,
-    "hellChance": 0.22,
+    "hellChance": 0.12,
+    "fakeChestChance": 0.53,
     "rarityWeights": {
       "common": 55,
       "rare": 30,
@@ -845,7 +888,7 @@
         "kind": "skill",
         "rarity": "common",
         "title": "Стрелы",
-        "description": "Точность 15% / 40% / 100%"
+        "description": "Точность 65% / 85% / 100%"
       },
       {
         "id": "sword",
@@ -923,6 +966,50 @@
         "rarity": "common",
         "title": "Скорость света",
         "description": "Предел скорости остаётся прежним."
+      }
+    ],
+    "fakeVariants": [
+      {
+        "id": "fakeInvulnerability",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Неуязвимость",
+        "description": "Только до получения уровня. Эффекта нет."
+      },
+      {
+        "id": "fakeTeleport",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Телепорт",
+        "description": "На шаг вперёд. Обычным шагом."
+      },
+      {
+        "id": "fakeMindReading",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Чтение мыслей",
+        "description": "Только своих. Они и так известны."
+      },
+      {
+        "id": "fakePastPrediction",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Предсказание",
+        "description": "Точно показывает прошлое."
+      },
+      {
+        "id": "fakeUnderwaterBreathing",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Дыхание под водой",
+        "description": "Вода только на фоне. Эффекта нет."
+      },
+      {
+        "id": "fakeInvisibility",
+        "kind": "fake",
+        "rarity": "common",
+        "title": "Невидимость",
+        "description": "Только для таких же невидимок."
       }
     ],
     "hellEntries": [
@@ -1348,7 +1435,7 @@
           4.4,
           3.5
         ],
-        "activeDuration": 1.05,
+        "activeDuration": 0.9,
         "riseTime": 0.18,
         "fallTime": 0.18
       },
@@ -1449,6 +1536,7 @@
         "gap": 55,
         "platformWidth": 260,
         "arenaExitGap": 55,
+        "arenaStepDrop": 70,
         "goalInset": 20
       },
       "pickup": {
@@ -2193,7 +2281,7 @@
       "width": 80,
       "height": 96,
       "portalOffsetY": 38,
-      "portalRadius": 27,
+      "portalRadius": 40,
       "openFraction": 0.8
     }
   },
@@ -2201,12 +2289,12 @@
     "earthOpacity": 1,
     "earthTileSize": 72,
     "background": {
-      "forestSpeed": 0.35,
-      "templeSpeed": 0.65,
       "foregroundSpeed": 1,
-      "transitionStart": 0.42,
-      "transitionLength": 0.4,
-      "foregroundOpacity": 1
+      "themes": {
+        "forest": { "image": "jungle", "speed": 0.35, "foregroundOpacity": 1, "vines": true },
+        "swamp": { "image": "swampRuins", "speed": 0.48, "foregroundOpacity": 0, "vines": false },
+        "temple": { "image": "temple", "speed": 0.65, "foregroundOpacity": 0, "vines": false }
+      }
     },
     "platformShadow": "#2c3d2d",
     "platformTop": "#70a356",

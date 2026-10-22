@@ -9,8 +9,11 @@ const images = {
   earth: { width: 72 },
   swampEarth: { width: 1024, height: 1024 },
   iceEarth: { width: 1254, height: 1254 },
+  ruinsEarth: { width: 1254, height: 1254 },
+  templeEarth: { width: 1024, height: 1024 },
   platformBases: [{ width: 2172, height: 724 },
-    { width: 1904, height: 826 }, { width: 2172, height: 724 }],
+    { width: 1904, height: 826 }, { width: 2172, height: 724 },
+    { width: 768, height: 256 }, { width: 768, height: 256 }],
   grassWind: { width: 2172, height: 724 },
   surfaceDetails: { width: 2172, height: 724 },
 };
@@ -112,6 +115,25 @@ test('ice and swamp repeat smaller mirrored texture pieces across platforms', ()
   }
 });
 
+test('ruins and temple use distinct art without changing normal ground physics', () => {
+  for (const [appearance, index, earth] of [
+    ['ruins', 3, images.ruinsEarth], ['temple', 4, images.templeEarth],
+  ]) {
+    const platform = { x: 0, y: 100, width: 300, height: 24,
+      surface: 'normal', appearance, fake: false, holeFor: 0 };
+    const ground = context();
+    drawPlatform(ground, platform, {}, images);
+    assert(ground.draws.some(([image]) => image === images.platformBases[index]));
+    assert(!ground.draws.some(([image]) => image === images.grassWind));
+    const fill = context();
+    drawEarth(fill, [platform], images, { earthOpacity: 1, earthTileSize: 72 },
+      { x: 0, y: 0 }, { left: 0, right: 300, top: 0, bottom: 300 });
+    assert(fill.draws.length > 0);
+    assert(fill.draws.every(([image]) => image === earth));
+    assert.equal(platform.surface, 'normal');
+  }
+});
+
 test('wide viewport keeps the first platform at its own bounds', () => {
   const first = { x: 45, y: 460, width: 255, height: 24 };
   assert.deepEqual(visibleGroundPlatforms([first], -600, 1400), [first]);
@@ -135,4 +157,29 @@ test('foreground vines switch sprite sheet frames without deforming the backgrou
   assert.equal(ctx.draws.filter(([image]) => image === background.foliage).length, 1);
   assert(ctx.draws.filter(([image]) => image === background.vineWind).length >= 4);
   assert(ctx.draws.every(([image]) => Object.values(background).includes(image)));
+});
+
+test('each stage draws its own backdrop and foreground density', () => {
+  const background = {
+    jungle: { width: 2172, height: 724 },
+    swampRuins: { width: 2172, height: 724 },
+    temple: { width: 2172, height: 724 },
+    foliage: { width: 2172, height: 724 },
+    vineWind: { width: 2172, height: 724 },
+  };
+  const settings = { foregroundSpeed: 1, foregroundOpacity: 1 };
+  for (const [image, foregroundOpacity, vines] of [
+    ['jungle', 1, true], ['swampRuins', 0, false], ['temple', 0, false],
+  ]) {
+    const ctx = context();
+    drawBackground(ctx, { width: 960, height: 540 }, background, settings,
+      0, 8000, 0, { image, speed: 0.4, foregroundOpacity, vines });
+    assert(ctx.draws.some(([drawn]) => drawn === background[image]));
+    assert(!ctx.draws.some(([drawn]) =>
+      ['jungle', 'swampRuins', 'temple'].some((key) =>
+        key !== image && drawn === background[key])));
+    assert.equal(ctx.draws.some(([drawn]) => drawn === background.foliage),
+      foregroundOpacity > 0);
+    assert.equal(ctx.draws.some(([drawn]) => drawn === background.vineWind), vines);
+  }
 });

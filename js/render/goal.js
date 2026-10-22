@@ -31,9 +31,11 @@ export function drawGoal(ctx, goal, progress, ready, scene, image, time = 0,
   ctx.arc(centerX, centerY, art.ringRadius, -Math.PI / 2,
     -Math.PI / 2 + Math.PI * 2 * charge);
   ctx.stroke();
-  for (const marker of art.markers) {
-    const angle = -Math.PI / 2 + Math.PI * 2 * marker.fraction;
-    ctx.fillStyle = charge >= marker.fraction ? art[marker.color] : art.markerEmpty;
+  for (const [index, marker] of art.markers.entries()) {
+    const fraction = index === art.markers.length - 1
+      ? goal.openFraction ?? marker.fraction : marker.fraction;
+    const angle = -Math.PI / 2 + Math.PI * 2 * fraction;
+    ctx.fillStyle = charge >= fraction ? art[marker.color] : art.markerEmpty;
     ctx.beginPath();
     ctx.arc(centerX + Math.cos(angle) * art.ringRadius,
       centerY + Math.sin(angle) * art.ringRadius, art.markerRadius, 0, Math.PI * 2);

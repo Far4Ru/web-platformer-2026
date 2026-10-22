@@ -1,6 +1,29 @@
 import { drawOverlayButton, drawOverlayFrame, drawTempleFrame } from '../render/overlay.js';
 import { drawSheetFrame } from '../render/sprites.js';
 
+// The sheet keeps the torso locked between frames. This extra trajectory makes
+// the feet leave the ground instead of merely changing pose in place.
+const VICTORY_JUMP_Y = [0, 0, 0, 0, -5, -14, -27, -41,
+  -53, -60, -61, -55, -43, -27, -10];
+// A short jump is followed by a readable pause on the ground. The complete
+// loop lasts 1.86 seconds, while takeoff through landing takes about a second.
+const VICTORY_FRAME_DURATIONS = [
+  0.65, 0.15, 0.09, 0.08, 0.07, 0.07, 0.07, 0.08,
+  0.1, 0.1, 0.08, 0.07, 0.07, 0.08, 0.1,
+];
+const VICTORY_CYCLE_DURATION = VICTORY_FRAME_DURATIONS
+  .reduce((total, duration) => total + duration, 0);
+
+function victoryFrameAt(time) {
+  let cycleTime = time % VICTORY_CYCLE_DURATION;
+  for (let index = 0; index < VICTORY_FRAME_DURATIONS.length; index++) {
+    const duration = VICTORY_FRAME_DURATIONS[index];
+    if (cycleTime < duration) return { index, progress: cycleTime / duration };
+    cycleTime -= duration;
+  }
+  return { index: 0, progress: 0 };
+}
+
 export class Overlay {
   constructor(ui, texts, world, images) {
     this.ui = ui;
@@ -12,29 +35,58 @@ export class Overlay {
   hitPrimary(point) {
     const rect = this.ui.overlay.button;
     return point.x >= rect.x && point.x <= rect.x + rect.width &&
-      point.y >= rect.y && point.y <= rect.y + rect.height;
+      point.y - (this.verticalOffset ?? 0) >= rect.y
+      && point.y - (this.verticalOffset ?? 0) <= rect.y + rect.height;
   }
 
   render(ctx, state, viewport, time = 0, game = null) {
-    const copy = this.texts.overlays[state];
+    this.verticalOffset = viewport.right - viewport.left < this.world.width
+      ? (viewport.bottom - viewport.top - this.world.height) / 2 : 0;
+    const copy = state === 'stage' ? {
+      kicker: `ЭТАП ${game.stageIndex + 1} ИЗ ${game.stageCount} ПРОЙДЕН`,
+      title: game.level.name,
+      description: 'Способности сохраняются. Впереди новый маршрут и новые испытания.',
+      button: 'Следующий этап',
+    } : this.texts.overlays[state];
     if (!copy) return;
     const { panel, button } = this.ui.overlay;
     const { colors, font } = this.ui;
     ctx.save();
-    drawOverlayFrame(ctx, this.world, panel, colors, this.images, viewport,
+    ctx.translate(0, this.verticalOffset);
+    const frameViewport = { ...viewport,
+      top: viewport.top - this.verticalOffset,
+      bottom: viewport.bottom - this.verticalOffset };
+    drawOverlayFrame(ctx, this.world, panel, colors, this.images, frameViewport,
       state === 'won' || state === 'lost');
     if (state === 'won' || state === 'lost') {
       const isWin = state === 'won';
       if (isWin) {
-        const hero = this.images.victoryHero[Math.floor(time * 1.8) % 3];
+        const victoryTime = game?.resultTime ?? 0;
+        // One coherent sixteen-frame sheet avoids differences in scale, face,
+        // camera angle and torso placement between adjacent poses.
+        const frame = victoryFrameAt(victoryTime);
+        const frameIndex = frame.index % this.images.victoryHero.length;
+        const nextIndex = (frameIndex + 1) % this.images.victoryHero.length;
+        const jumpY = VICTORY_JUMP_Y[frameIndex]
+          + (VICTORY_JUMP_Y[nextIndex] - VICTORY_JUMP_Y[frameIndex]) * frame.progress;
+        const entrance = Math.min(1, victoryTime / 0.75);
+        const easedEntrance = 1 - (1 - entrance) ** 3;
+        const drawHero = (hero, alpha) => {
+          ctx.save();
+          ctx.globalAlpha = alpha * easedEntrance;
+          ctx.translate(358, 260 + jumpY + (1 - easedEntrance) * 56);
+          const scale = 0.84 + easedEntrance * 0.16;
+          ctx.scale(scale, scale);
+          ctx.drawImage(hero, 0, 0, hero.width, hero.height,
+            -115, -120.5, 230, 241);
+          ctx.restore();
+        };
         ctx.save();
         ctx.filter = 'brightness(1.12) saturate(1.2)';
         ctx.shadowColor = '#ffc949';
         ctx.shadowBlur = 22;
-        ctx.drawImage(hero, 0, 0, hero.width, hero.height * 0.77,
-          277, 137 + Math.sin(time * 7) * 3, 215, 230);
+        drawHero(this.images.victoryHero[frameIndex], 1);
         ctx.restore();
-        drawVictoryParticles(ctx, this.images, time, 590, 285);
       } else {
         const sceneIndex = { fall: 0, spikes: 1, enemy: 2, wall: 3 }[game?.lossReason] ?? 2;
         const scene = this.images.defeatScenes[sceneIndex];
@@ -55,10 +107,13 @@ export class Overlay {
       const titleHeight = isWin ? 56 : 86;
       const titleX = isWin ? 600 : 480;
       const titleY = isWin ? 209 : 190;
-      const pulse = isWin ? 1 + Math.sin(time * 5) * 0.06 : 1;
+      const titleEntrance = isWin ? Math.min(1, (game?.resultTime ?? 0) / 0.6) : 1;
+      const pulse = isWin ? (0.78 + titleEntrance * 0.22)
+        * (1 + Math.sin(time * 5) * 0.045) : 1;
       ctx.save();
       ctx.translate(titleX, titleY);
       ctx.scale(pulse, pulse);
+      ctx.globalAlpha = titleEntrance;
       ctx.shadowColor = isWin ? '#ffd44c' : '#a25c32';
       ctx.shadowBlur = isWin ? 18 : 8;
       ctx.drawImage(titleImage, -titleWidth / 2, -titleHeight / 2,
@@ -73,6 +128,8 @@ export class Overlay {
       const centerX = isWin ? 600 : 480;
       const centerY = isWin ? 287 : 304;
       const groupX = centerX - (coinSize + 9 + countWidth) / 2;
+      if (isWin) drawVictoryParticles(ctx, this.images, game?.resultTime ?? 0,
+        groupX + coinSize + 9 + countWidth / 2, centerY);
       drawSheetFrame(ctx, this.images.coinAnimation, Math.floor(time * 9) % 4, 4,
         groupX, centerY - coinSize / 2, coinSize, coinSize);
       ctx.textAlign = 'left';
@@ -134,22 +191,27 @@ export class Overlay {
 }
 
 function drawVictoryParticles(ctx, images, time, originX, originY) {
-  for (let index = 0; index < 14; index++) {
-    const phase = (time * 0.52 + index / 14) % 1;
-    const angle = -2.55 + index * 0.17;
-    const distance = phase * (70 + index % 4 * 13);
-    const x = originX + Math.cos(angle) * distance;
-    const y = originY + Math.sin(angle) * distance + phase * phase * 42;
-    const size = 14 + index % 3 * 4;
+  const count = 32;
+  for (let index = 0; index < count; index++) {
+    const offset = (index * 0.61803398875) % 1;
+    const phase = (time * 0.72 + offset) % 1;
+    const age = phase * 1.5;
+    const spread = (index / (count - 1) - 0.5) * 2.18;
+    const angle = -Math.PI / 2 + spread;
+    const speed = 205 + (index * 47) % 145;
+    const nozzleX = Math.sin(index * 8.7) * 24;
+    const x = originX + nozzleX + Math.cos(angle) * speed * age;
+    const y = originY + Math.sin(angle) * speed * age + 210 * age * age;
+    const size = 15 + index % 4 * 3;
     ctx.save();
-    ctx.globalAlpha = Math.min(1, phase * 5, (1 - phase) * 3);
+    ctx.globalAlpha = Math.min(1, phase * 8, (1 - phase) * 5);
     ctx.shadowColor = '#ffdc58';
     ctx.shadowBlur = 12;
     drawSheetFrame(ctx, images.coinAnimation,
-      (Math.floor(time * 12) + index) % 4, 4,
+      (Math.floor(time * 14) + index) % 4, 4,
       x - size / 2, y - size / 2, size, size);
-    ctx.drawImage(images.effects[2][1], x - size * 0.65,
-      y - size * 0.65, size * 1.3, size * 1.3);
+    if (index % 3 === 0) ctx.drawImage(images.effects[2][1], x - size * 0.72,
+      y - size * 0.72, size * 1.44, size * 1.44);
     ctx.restore();
   }
 }

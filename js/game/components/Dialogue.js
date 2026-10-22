@@ -112,10 +112,10 @@ export class Dialogue {
     if (this.say('fakePlatform', { cooldown: 8 })) this.seenPlatforms.add(platform);
   }
 
-  onCoinProgress(progress) {
+  onCoinProgress(progress, required = 0.8) {
     if (progress >= 0.4) this.say('coinsForty', { once: true });
     if (progress >= 0.6) this.say('coinsSixty', { once: true });
-    if (progress >= 0.8) this.say('coinsEighty', { once: true });
+    if (progress >= required) this.say('coinsEighty', { once: true });
   }
 
   onPortalReady() {

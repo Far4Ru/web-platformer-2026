@@ -23,6 +23,7 @@ export class SwordSkill {
       const horizontalGap = Math.max(0, enemy.x - (player.x + player.width), player.x - (enemy.x + enemy.width));
       return verticalGap <= verticalRange && horizontalGap <= range;
     });
+    if (!nearby.length) return false;
     const closest = nearby.reduce((best, enemy) => {
       const distance = Math.hypot(enemy.x + enemy.width / 2 - centerX, enemy.y + enemy.height / 2 - centerY);
       return !best || distance < best.distance ? { enemy, distance } : best;
@@ -38,20 +39,24 @@ export class SwordSkill {
     this.cooldown = this.settings.interval;
     this.attackTime = this.settings.attackDuration;
     if (this.level === 3 && !this.performingSecondStrike) this.secondStrike = 0.22;
+    return true;
   }
 
   update(dt, player, enemies, damageMultiplier = 1) {
+    let attacked = false;
     this.attackTime = Math.max(0, this.attackTime - dt);
-    if (this.level === 0) return;
+    if (this.level === 0) return false;
     if (this.secondStrike > 0) {
       this.secondStrike -= dt;
       if (this.secondStrike <= 0) {
         this.performingSecondStrike = true;
-        this.activate(player, enemies, damageMultiplier);
+        attacked = this.activate(player, enemies, damageMultiplier) || attacked;
         this.performingSecondStrike = false;
       }
     }
     this.cooldown = Math.max(0, this.cooldown - dt);
-    if (this.cooldown === 0) this.activate(player, enemies, damageMultiplier);
+    if (this.cooldown === 0)
+      attacked = this.activate(player, enemies, damageMultiplier) || attacked;
+    return attacked;
   }
 }

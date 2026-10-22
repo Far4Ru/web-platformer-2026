@@ -73,6 +73,54 @@ test('music is not requested before the game starts', () => {
   }
 });
 
+test('music switches between stage and event tracks and reuses loaded audio', () => {
+  const originalAudio = globalThis.Audio;
+  const created = [];
+  globalThis.Audio = class {
+    constructor(src) { this.src = src; created.push(this); }
+    play() { return Promise.resolve(); }
+    pause() {}
+  };
+  try {
+    const music = new Music({ volume: 0.25, tracks: {
+      forest: { src: 'forest.mp3', volume: 0.2 },
+      boss: { src: 'boss.mp3', volume: 0.3 },
+    } });
+    music.play('forest');
+    music.play('boss');
+    music.play('forest');
+    assert.deepEqual(created.map((audio) => audio.src), ['forest.mp3', 'boss.mp3']);
+    assert.equal(music.audio, created[0]);
+    assert.equal(music.audio.volume, 0.2);
+    assert.equal(music.audio.currentTime, 0);
+  } finally {
+    globalThis.Audio = originalAudio;
+  }
+});
+
+test('the opening stage can preload before the first play gesture', () => {
+  const originalAudio = globalThis.Audio;
+  const created = [];
+  globalThis.Audio = class {
+    constructor(src) { this.src = src; this.loads = 0; created.push(this); }
+    load() { this.loads++; }
+    play() { return Promise.resolve(); }
+    pause() {}
+  };
+  try {
+    const music = new Music({ preload: 'forest', tracks: {
+      forest: { src: 'forest.mp3', volume: 0.42 },
+    } });
+    assert.equal(created.length, 1);
+    assert.equal(created[0].loads, 1);
+    music.play('forest');
+    assert.equal(created.length, 1);
+    assert.equal(music.audio, created[0]);
+  } finally {
+    globalThis.Audio = originalAudio;
+  }
+});
+
 test('overlay veil covers the entire visible viewport', () => {
   const fills = [];
   const ctx = {

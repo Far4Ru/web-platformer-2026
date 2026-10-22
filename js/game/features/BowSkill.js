@@ -38,7 +38,7 @@ export class BowSkill extends ProjectileSkill {
       life: projectile.life, kind: 'arrow', damage: this.settings.damage,
       stun: this.settings.stunDuration,
     });
-    const hitChance = [0, 0.15, 0.4, 1][this.level] ?? 1;
+    const hitChance = [0, 0.65, 0.85, 1][this.level] ?? 1;
     shot.hitChance = hitChance;
     if (this.random() >= hitChance) {
       const missY = this.random() < 0.5

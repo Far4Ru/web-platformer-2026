@@ -5,6 +5,7 @@ export class Platform extends Entity {
     super(bounds);
     this.fake = Boolean(bounds.fake);
     this.surface = bounds.surface ?? 'normal';
+    this.appearance = bounds.appearance ?? (this.surface === 'normal' ? 'moss' : this.surface);
     this.holeFor = 0;
     this.spikeFor = 0;
     this.broken = false;

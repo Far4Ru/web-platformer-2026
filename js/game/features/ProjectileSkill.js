@@ -10,13 +10,15 @@ export class ProjectileSkill {
   }
 
   update(dt, player, enemies, shots) {
-    if (this.level === 0) return;
+    if (this.level === 0) return false;
     this.cooldown = Math.max(0, this.cooldown - dt);
-    if (this.cooldown > 0) return;
+    if (this.cooldown > 0) return false;
     const created = this.createShots?.(player, enemies) ?? this.createShot(player, enemies);
     if (created) {
       for (const shot of Array.isArray(created) ? created : [created]) shots.add(shot);
       this.cooldown = this.settings.interval;
+      return true;
     }
+    return false;
   }
 }

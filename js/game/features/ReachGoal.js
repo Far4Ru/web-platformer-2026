@@ -4,7 +4,6 @@ export class ReachGoal {
   constructor(bounds) {
     this.goal = new Goal(bounds);
     this.openFraction = bounds.openFraction;
-    this.requiresBoss = !!bounds.requiresBoss;
     this.phase = 'charging';
     this.phaseTime = 0;
     this.openDuration = 0.9;
@@ -16,17 +15,16 @@ export class ReachGoal {
       ? Math.max(0, Math.min(1, collectCoins.count / collectCoins.total)) : 0;
   }
 
-  isReady(collectCoins, bossDefeated = true) {
-    return this.progress(collectCoins) >= this.openFraction
-      && (!this.requiresBoss || bossDefeated);
+  isReady(collectCoins) {
+    return this.progress(collectCoins) >= this.openFraction;
   }
 
-  reachedBy(player, collectCoins, bossDefeated = true) {
-    return this.isReady(collectCoins, bossDefeated) && this.goal.hits(player);
+  reachedBy(player, collectCoins) {
+    return this.isReady(collectCoins) && this.goal.hits(player);
   }
 
-  update(dt, player, collectCoins, bossDefeated = true) {
-    if (!this.isReady(collectCoins, bossDefeated)) {
+  update(dt, player, collectCoins) {
+    if (!this.isReady(collectCoins)) {
       this.phase = 'charging';
       this.phaseTime = 0;
       return false;

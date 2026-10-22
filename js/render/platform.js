@@ -27,12 +27,14 @@ export function drawEarth(ctx, platforms, images, scene, camera, viewport) {
       ctx.rect(piece.x, earthY, piece.width, bottom - earthY);
       ctx.clip();
       ctx.globalAlpha = scene.earthOpacity;
-      const surface = surfaceIndex(platform);
-      const tile = surface === 1 || surface === 2 ? 256 : scene.earthTileSize;
+      const surface = materialIndex(platform);
+      const tile = surface === 0 ? scene.earthTileSize : 256;
       const firstX = Math.floor(Math.max(left, piece.x) / tile) * tile;
       const firstY = Math.floor(Math.max(camera.y + viewport.top, earthY) / tile) * tile;
       const image = surface === 1 ? images.iceEarth
-        : surface === 2 ? images.swampEarth : images.earth;
+        : surface === 2 ? images.swampEarth
+          : surface === 3 ? images.ruinsEarth
+          : surface === 4 ? images.templeEarth : images.earth;
       for (let y = firstY; y < bottom; y += tile) {
         for (let x = firstX; x < Math.min(right, piece.x + piece.width); x += tile) {
           ctx.drawImage(image, x, y, tile, tile);
@@ -43,8 +45,11 @@ export function drawEarth(ctx, platforms, images, scene, camera, viewport) {
   }
 }
 
-function surfaceIndex(platform) {
-  return platform.surface === 'ice' ? 1 : platform.surface === 'swamp' ? 2 : 0;
+function materialIndex(platform) {
+  if (platform.surface === 'ice') return 1;
+  if (platform.surface === 'swamp') return 2;
+  return platform.appearance === 'ruins' ? 3
+    : platform.appearance === 'temple' ? 4 : 0;
 }
 
 function drawSheetCell(ctx, image, cell, columns, x, y, width, height,
@@ -72,7 +77,7 @@ function variation(seed) {
 }
 
 function tuftsInPiece(piece, surface) {
-  if (surface === 1) return [];
+  if (surface === 1 || surface >= 3) return [];
   const tufts = [];
   for (let slot = Math.floor(piece.x / 78);
     slot <= Math.ceil((piece.x + piece.width) / 78); slot++) {
@@ -90,7 +95,7 @@ function tuftsInPiece(piece, surface) {
 }
 
 export function grassTufts(platform) {
-  const surface = platform.surface === 'ice' ? 1 : platform.surface === 'swamp' ? 2 : 0;
+  const surface = materialIndex(platform);
   return visiblePieces(platform).flatMap((piece) => tuftsInPiece(piece, surface));
 }
 
@@ -99,8 +104,7 @@ export function drawPlatform(ctx, platform, scene, images, time = 0,
   if (platform.broken) {
     if (platform.breakFor <= 0) return;
     const progress = 1 - platform.breakFor / 0.45;
-    const image = images.platformBases[platform.surface === 'ice' ? 1
-      : platform.surface === 'swamp' ? 2 : 0];
+    const image = images.platformBases[materialIndex(platform)];
     ctx.save();
     ctx.globalAlpha *= 1 - progress;
     for (let shard = 0; shard < 4; shard++) {
@@ -118,7 +122,7 @@ export function drawPlatform(ctx, platform, scene, images, time = 0,
     return;
   }
   const pieces = platform.fake ? [platform] : visiblePieces(platform);
-  const surface = platform.surface === 'ice' ? 1 : platform.surface === 'swamp' ? 2 : 0;
+  const surface = materialIndex(platform);
   for (const piece of pieces) {
     if (piece.width <= 0) continue;
     const blockHeight = piece.height;
@@ -149,16 +153,18 @@ export function drawPlatform(ctx, platform, scene, images, time = 0,
       if (variation(seed) < 0.48) continue;
       const x = slot * 103 + 23 + variation(seed + 1) * 35;
       if (x < piece.x + 12 || x > piece.x + piece.width - 12) continue;
-      const cell = surface === 1 ? (variation(seed + 2) < 0.5 ? 3 : 4)
-        : surface === 2 ? (variation(seed + 2) < 0.5 ? 5 : 2)
-          : variation(seed + 2) < 0.5 ? 0 : 2;
-      drawSheetCell(ctx, images.surfaceDetails, cell, 6,
-        x - 13, piece.y + 5, 26, Math.min(16, blockHeight - 6),
-        images.surfaceDetails.height * 0.18, images.surfaceDetails.height * 0.62);
+      if (surface !== 4) {
+        const cell = surface === 1 ? (variation(seed + 2) < 0.5 ? 3 : 4)
+          : surface === 2 || surface === 3 ? (variation(seed + 2) < 0.5 ? 5 : 2)
+            : variation(seed + 2) < 0.5 ? 0 : 2;
+        drawSheetCell(ctx, images.surfaceDetails, cell, 6,
+          x - 13, piece.y + 5, 26, Math.min(16, blockHeight - 6),
+          images.surfaceDetails.height * 0.18, images.surfaceDetails.height * 0.62);
+      }
     }
     ctx.restore();
 
-    if (surface !== 1) {
+    if (surface === 0 || surface === 2) {
       ctx.save();
       ctx.beginPath();
       ctx.rect(piece.x, piece.y - 38, piece.width, 48);

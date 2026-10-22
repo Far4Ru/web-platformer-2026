@@ -44,6 +44,28 @@ test('boost pickups activate once, expire, and reset for a new run', () => {
   assert.equal(boosts.damageMultiplier, 1);
 });
 
+test('distributed healing bubbles wait until health is missing', () => {
+  const boosts = new Boosts(settings.boosts, {
+    heal: bounds.heal,
+    heal2: { x: 100, y: 0, width: 28, height: 28 },
+  });
+  const health = new PlayerHealth(settings.health);
+  const player = { x: 0, y: 0, width: 28, height: 28 };
+  boosts.update(0, player, health);
+  assert.equal(boosts.pickups.heal.collected, false);
+  health.takeDamage();
+  boosts.update(0, player, health);
+  assert.equal(boosts.pickups.heal.collected, true);
+  player.x = 100;
+  health.invulnerableFor = 0;
+  health.takeDamage();
+  boosts.update(0, player, health);
+  assert.equal(boosts.pickups.heal2.collected, true);
+  assert.equal(health.value, settings.health.max);
+  assert.equal(boosts.kindFor('heal2'), 'heal');
+  assert.equal('damage' in boosts.pickups, false);
+});
+
 test('speed boost changes movement and damage boost affects sword and projectiles', () => {
   const player = {
     x: 0, y: 0, width: 32, height: 40, vx: 0, vy: 0, facing: 1, grounded: true,

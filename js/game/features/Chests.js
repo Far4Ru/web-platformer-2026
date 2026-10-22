@@ -25,25 +25,54 @@ export class Chests {
 
   get active() { return this.phase !== null; }
 
+  pickWeighted(cards) {
+    if (!cards.length) return null;
+    const rarities = [...new Set(cards.map((card) => card.rarity))];
+    const total = rarities.reduce((sum, rarity) =>
+      sum + Math.max(0, this.settings.rarityWeights[rarity] ?? 0), 0);
+    let roll = this.random() * total;
+    const rarity = total > 0 ? rarities.find((entry) =>
+      (roll -= Math.max(0, this.settings.rarityWeights[entry] ?? 0)) < 0)
+      ?? rarities.at(-1) : rarities[0];
+    const tier = cards.filter((card) => card.rarity === rarity);
+    return tier[Math.floor(this.random() * tier.length)];
+  }
+
   drawOffers(game) {
     const eligible = this.settings.entries.filter((card) => {
+      if (card.kind === 'fake') return false;
       if (card.kind === 'skill' && game[`${card.id}Skill`].level >= 3) return false;
+      if (card.id === 'damage' && game.cardBonuses.damage >= 1) return false;
+      if (card.id === 'speed' && game.cardBonuses.speed >= 2) return false;
       if (card.id === 'blessing' && (this.blessed || this.hellUsed)) return false;
       if (card.id === 'noBoss' && game.enemies.bossDefeated) return false;
       return true;
     });
     const offers = [];
     while (offers.length < this.settings.choiceCount && eligible.length) {
-      const total = eligible.reduce((sum, card) => sum + this.settings.rarityWeights[card.rarity], 0);
-      let roll = this.random() * total;
-      const index = eligible.findIndex((card) => (roll -= this.settings.rarityWeights[card.rarity]) < 0);
-      offers.push(eligible.splice(index < 0 ? eligible.length - 1 : index, 1)[0]);
+      const card = this.pickWeighted(eligible);
+      offers.push(card);
+      eligible.splice(eligible.indexOf(card), 1);
     }
     const attacks = ['sword', 'fireball', 'ice', 'bow'];
     if (attacks.every((kind) => game[`${kind}Skill`].level === 0)
       && !offers.some((card) => attacks.includes(card.id))) {
       const candidates = this.settings.entries.filter((card) => attacks.includes(card.id));
-      offers[offers.length - 1] = candidates[Math.floor(this.random() * candidates.length)];
+      offers[offers.length - 1] = this.pickWeighted(candidates);
+    }
+    if (!offers.some((card) => card.kind === 'skill')) {
+      const unowned = this.settings.entries.filter((card) => card.kind === 'skill'
+        && game[`${card.id}Skill`].level === 0);
+      if (unowned.length) offers[offers.length - 1] = this.pickWeighted(unowned);
+    }
+    const fakePool = [...this.settings.entries.filter((card) => card.kind === 'fake'),
+      ...(this.settings.fakeVariants ?? [])];
+    if (fakePool.length && offers.length && this.random() < this.settings.fakeChestChance) {
+      const replaceable = offers.map((card, index) => card.kind === 'skill' ? -1 : index)
+        .filter((index) => index >= 0);
+      const slots = replaceable.length ? replaceable : offers.map((_, index) => index);
+      const slot = slots[Math.floor(this.random() * slots.length)];
+      offers[slot] = fakePool[Math.floor(this.random() * fakePool.length)];
     }
     this.offers = offers;
     this.selectedIndex = 0;
@@ -83,7 +112,11 @@ export class Chests {
   update(dt, player, game) {
     if (this.phase === 'transform' || this.phase === 'opening') {
       this.timer -= dt;
-      if (this.timer <= 0) this.phase = this.phase === 'transform' ? 'hellCard' : 'choice';
+      if (this.timer <= 0) {
+        const transformed = this.phase === 'transform';
+        this.phase = transformed ? 'hellCard' : 'choice';
+        if (transformed) game.sounds?.play('hellCard');
+      }
       return;
     }
     if (this.phase === 'reward') {
@@ -131,6 +164,7 @@ export class Chests {
     this.rerolls--;
     this.cancelHold();
     this.drawOffers(game);
+    game.sounds?.play('cardReroll');
     return true;
   }
 
@@ -162,7 +196,7 @@ export class Chests {
     this.rewardIndex = index;
     this.apply(card, game);
     this.rewardLevel = card.kind === 'skill' ? game[`${card.id}Skill`].level : 0;
-    game.sounds?.play('card');
+    game.sounds?.play(card.kind === 'fake' ? 'fakeCard' : 'card');
     this.rewardCard = card;
     this.offers = [];
     this.phase = 'reward';
@@ -184,8 +218,10 @@ export class Chests {
       return;
     }
     if (card.id === 'health') game.playerHealth.increaseMax(1);
-    else if (card.id === 'damage') game.cardBonuses.damage++;
-    else if (card.id === 'speed') game.cardBonuses.speed *= 1.5;
+    else if (card.id === 'damage') game.cardBonuses.damage = Math.min(1,
+      game.cardBonuses.damage + 1);
+    else if (card.id === 'speed') game.cardBonuses.speed = Math.min(2,
+      game.cardBonuses.speed * 1.5);
     else if (card.id === 'simplify' || card.id === 'complicate') {
       game.enemies.changeDifficulty(card.id === 'simplify' ? -1 : 1,
         card.id === 'simplify' ? 1 : 0);

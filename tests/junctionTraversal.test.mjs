@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { moveAndCollide } from '../js/engine/collision.js';
 import { generateLevel } from '../js/game/LevelGenerator.js';
+import { levelForStage } from '../js/game/LevelStages.js';
 
 const settings = JSON.parse(readFileSync(new URL('../assets/json/game.json', import.meta.url), 'utf8'));
 const player = settings.player;
@@ -78,24 +79,47 @@ test('both roads and backward objectives are reachable with solid ceilings', () 
         `seed ${seed}: return route at ${junction.startIndex}, hop ${index}`);
       }
     }
-    const bossPath = [level.platforms[settings.level.generation.mainPlatforms - 2],
+    const bossPath = [level.platforms[settings.level.generation.mainPlatforms - 1],
       ...level.layout.bossRoute.map((index) => level.platforms[index])];
     const mainEnd = level.platforms[settings.level.generation.mainPlatforms - 1];
-    assert(canReach(bossPath[0], mainEnd, solid, false)
-      || canReach(bossPath[0], mainEnd, solid, true),
+    assert(canReach(level.platforms[settings.level.generation.mainPlatforms - 2], mainEnd,
+      solid, false)
+      || canReach(level.platforms[settings.level.generation.mainPlatforms - 2], mainEnd,
+        solid, true),
     `seed ${seed}: lower route of final fork is blocked`);
     for (let index = 1; index < bossPath.length; index++) {
       assert(canReach(bossPath[index - 1], bossPath[index], solid, true),
         `seed ${seed}: boss route hop ${index}`);
     }
-    const finishPath = [mainEnd,
+    const finishPath = [bossPath.at(-1),
       ...level.layout.finishRoute.map((index) => level.platforms[index])];
     for (let index = 1; index < finishPath.length; index++) {
       assert(canReach(finishPath[index - 1], finishPath[index], solid, true)
         || canReach(finishPath[index - 1], finishPath[index], solid, false),
       `seed ${seed}: finish route hop ${index}`);
     }
-    assert(canReach(bossPath.at(-1), finishPath.at(-1), solid, false),
-      `seed ${seed}: boss arena has no exit to the finish platform`);
+    if (seed < 60) {
+      const fullPath = [...bossPath, ...finishPath.slice(1)];
+      for (let index = fullPath.length - 1; index > 0; index--)
+        assert(canReach(fullPath[index], fullPath[index - 1], solid, true),
+          `seed ${seed}: return from finish, hop ${index}`);
+    }
+  }
+});
+
+test('final stage connects the boss arena and portal in both directions', () => {
+  const template = levelForStage(settings.level, 2);
+  for (let seed = 0; seed < 100; seed++) {
+    const level = generateLevel(template, seed);
+    const solid = level.platforms.filter((platform) => !platform.fake);
+    const path = [template.generation.mainPlatforms - 1,
+      ...level.layout.bossRoute, ...level.layout.finishRoute]
+      .map((index) => level.platforms[index]);
+    for (let index = 1; index < path.length; index++) {
+      assert(canReach(path[index - 1], path[index], solid, true),
+        `seed ${seed}: cannot approach portal at hop ${index}`);
+      assert(canReach(path[index], path[index - 1], solid, true),
+        `seed ${seed}: cannot return from portal at hop ${index}`);
+    }
   }
 });

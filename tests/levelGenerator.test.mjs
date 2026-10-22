@@ -136,7 +136,8 @@ test('generated routes and required objects obey movement limits', () => {
       + rules.bossRoute.steps + 1 + rules.finishRoute.steps + 1);
     assert.equal(level.layout.bossRoute.length, rules.bossRoute.steps + 1);
     const bossEntry = level.platforms[level.layout.bossRoute[0]];
-    assert.equal(bossEntry.x, route.at(-1).x);
+    assert.equal(bossEntry.x,
+      route.at(-1).x + route.at(-1).width + rules.bossRoute.gap);
     assert(bossEntry.y < route.at(-1).y - settings.player.height);
     const arena = level.platforms[level.layout.arenaIndex];
     const boss = level.enemies.at(-1);
@@ -147,13 +148,14 @@ test('generated routes and required objects obey movement limits', () => {
     assert.equal(level.layout.finishRoute.length, rules.finishRoute.steps + 1);
     const finishEntry = level.platforms[level.layout.finishRoute[0]];
     const finish = level.platforms[level.layout.finishIndex];
-    assert.equal(finishEntry.x, route.at(-1).x + route.at(-1).width + rules.finishRoute.gap);
-    assert(level.layout.finishRoute.every((index) =>
-      level.platforms[index].y === route.at(-1).y));
+    assert.equal(finishEntry.x, arena.x + arena.width + rules.finishRoute.gap);
+    assert.equal(finishEntry.y, arena.y + rules.finishRoute.arenaStepDrop);
+    assert(level.layout.finishRoute.every((index, order) =>
+      level.platforms[index].y === arena.y + (order + 1) * rules.finishRoute.arenaStepDrop));
     assert(finish.x >= arena.x + arena.width + rules.finishRoute.arenaExitGap);
     assert.equal(finish.width, rules.finishRoute.platformWidth);
     assert.notEqual(level.layout.finishIndex, level.layout.arenaIndex);
-    assert.equal(level.goal.requiresBoss, true);
+    assert.equal(level.goal.requiresBoss, undefined);
     assert.equal(level.goal.y + level.goal.height, finish.y);
     assert(level.goal.x >= finish.x && level.goal.x + level.goal.width <= finish.x + finish.width);
     assert.equal(level.width, finish.x + finish.width + rules.endPadding);

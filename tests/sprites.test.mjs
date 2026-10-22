@@ -17,7 +17,7 @@ function pngSize(path) {
 test('static objects are separate PNGs; animations are PNG sheets with JSON atlases', () => {
   const staticPaths = ['objects', 'effects', 'pickups']
     .flatMap((group) => settings.images[group].flat(Infinity));
-  assert.equal(staticPaths.length, 22);
+  assert.equal(staticPaths.length, 21);
   assert.equal(new Set(staticPaths).size, staticPaths.length);
   for (const path of staticPaths) {
     assert(path.startsWith('assets/sprites/'));

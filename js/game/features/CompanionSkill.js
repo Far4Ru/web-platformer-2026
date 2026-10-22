@@ -22,7 +22,7 @@ export class CompanionSkill {
     this.skillKind = null;
   }
 
-  update(dt, player, enemies, shots, game) {
+  update(dt, player, enemies, shots, game, onEvent = () => {}) {
     if (this.level === 0 || this.health <= 0) return;
     if (this.level !== this.skillLevel) {
       if (this.level >= 2) {
@@ -33,7 +33,7 @@ export class CompanionSkill {
     }
     const platforms = game.platforms?.solidItems ?? [];
     const supported = (x, y) => platforms.some((platform) =>
-      Math.abs(platform.y - (y + player.height)) < 4
+      Math.abs(platform.y - (y + player.height)) < 0.01
       && x + player.width / 2 >= platform.x
       && x + player.width / 2 <= platform.x + platform.width
       && !(platform.holeFor > 0 && x + player.width / 2 >= platform.holeX
@@ -74,8 +74,9 @@ export class CompanionSkill {
     }
     const speed = 520 + 150 * Math.sin(this.routeLength * 0.018) +
       Math.max(0, target - this.routeProgress - 70) * 3;
-    this.routeProgress = Math.min(target, this.routeProgress +
-      Math.min(700, Math.max(330, speed)) * dt);
+    // A turn can increase the desired gap. Never rewind along the recorded path.
+    this.routeProgress = Math.max(this.routeProgress, Math.min(target, this.routeProgress +
+      Math.min(700, Math.max(330, speed)) * dt));
     while (this.history.length > 2 && this.history[1].length < this.routeProgress)
       this.history.shift();
     let next = this.history.findIndex((point) => point.length >= this.routeProgress);
@@ -100,16 +101,21 @@ export class CompanionSkill {
       if (shotIndex >= 0) enemies.projectiles.splice(shotIndex, 1);
       this.health--;
       this.hurtFor = 1;
+      onEvent(this.health <= 0 ? 'down' : 'hurt');
       if (this.health <= 0) { this.companion = null; return; }
     }
     if (this.level < 2) return;
     this.cooldown = Math.max(0, this.cooldown - dt);
     if (this.cooldown > 0) return;
     const level = this.level - 1;
+    let attacked = false;
     if (this.skillKind === 'sword') {
       for (const enemy of enemies.items) {
         if (enemy.alive && Math.abs(enemy.x - this.companion.x) < (level === 1 ? 55 : 90)
-          && Math.abs(enemy.y - this.companion.y) < 45) enemy.takeDamage(1, 0.3);
+          && Math.abs(enemy.y - this.companion.y) < 45) {
+          enemy.takeDamage(1, 0.3);
+          attacked = true;
+        }
       }
     } else {
       const Skill = { bow: BowSkill, fireball: FireballSkill, ice: IceSkill }[this.skillKind];
@@ -117,8 +123,12 @@ export class CompanionSkill {
       borrowed.level = level;
       const created = borrowed.createShots?.(this.companion, enemies)
         ?? borrowed.createShot(this.companion, enemies);
-      for (const shot of Array.isArray(created) ? created : created ? [created] : []) shots.add(shot);
+      for (const shot of Array.isArray(created) ? created : created ? [created] : []) {
+        shots.add(shot);
+        attacked = true;
+      }
     }
+    if (attacked) onEvent('attack');
     this.cooldown = 5;
   }
 }

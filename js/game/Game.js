@@ -35,6 +35,7 @@ import { WinLose } from './features/WinLose.js';
 import { Chests } from './features/Chests.js';
 import { HellMode } from './features/HellMode.js';
 import { generateLevel } from './LevelGenerator.js';
+import { estimateCombatPower, levelForStage, stageCount } from './LevelStages.js';
 import { enterMobileFullscreen } from '../engine/fullscreen.js';
 
 export class Game {
@@ -48,7 +49,11 @@ export class Game {
     this.sounds = new SoundEffects(settings.sounds);
     this.player = new Player(settings.player);
     this.playerHealth = new PlayerHealth(settings.health);
+    this.stageIndex = 0;
+    this.stageCount = stageCount;
     this.buildLevel();
+    this.swordSkill.level = 1;
+    this.captureCheckpoint();
     this.background = new Background(engine.images, settings.scene.background);
     this.hud = new HUD(settings.ui, texts, settings.world.width, engine.images);
     this.overlay = new Overlay(settings.ui, texts, settings.world, engine.images);
@@ -61,7 +66,7 @@ export class Game {
     this.idleTime = 0;
     this.landingTime = 0;
     this.hasStarted = false;
-    this.bestScore = new BestScore(settings.storageKey);
+    this.bestScore = this.scoreForStage();
     this.runBestBefore = this.bestScore.value;
     this.resultTime = 0;
     this.newRecord = false;
@@ -72,9 +77,10 @@ export class Game {
     this.bindControls();
   }
 
-  buildLevel() {
+  buildLevel(combatPower = null, requestedSeed = null) {
     const { settings, canvas } = this;
-    this.level = generateLevel(settings.level);
+    this.level = generateLevel(levelForStage(settings.level, this.stageIndex, combatPower),
+      requestedSeed);
     this.platforms = new Platforms(this.level.platforms);
     this.grassMotion = new GrassMotion();
     this.collectCoins = new CollectCoins(
@@ -101,6 +107,44 @@ export class Game {
     this.dust = new DustParticles(settings.player.dust);
     this.camera = new Camera(settings.world.width, settings.world.height, this.level);
     this.camera.follow(this.player);
+    this.bossMusicActive = false;
+  }
+
+  scoreForStage() {
+    return new BestScore(`${this.settings.storageKey}:stage:${this.stageIndex + 1}`);
+  }
+
+  captureCheckpoint(combatPower = null) {
+    this.stageCheckpoint = {
+      stageIndex: this.stageIndex,
+      seed: this.level.seed,
+      combatPower,
+      skills: Object.fromEntries(['healing', 'sword', 'companion', 'fireball', 'ice', 'bow']
+        .map((kind) => [kind, this[`${kind}Skill`].level])),
+      bonuses: { ...this.cardBonuses },
+      maxHealth: this.playerHealth.settings.max,
+      health: this.playerHealth.value,
+      rerolls: this.chests.rerolls,
+      blessed: this.chests.blessed,
+      hellUsed: this.chests.hellUsed,
+    };
+  }
+
+  restoreCheckpoint() {
+    const checkpoint = this.stageCheckpoint;
+    this.stageIndex = checkpoint.stageIndex;
+    this.player.reset();
+    this.buildLevel(checkpoint.combatPower, checkpoint.seed);
+    for (const [kind, level] of Object.entries(checkpoint.skills))
+      this[`${kind}Skill`].level = level;
+    this.cardBonuses = { ...checkpoint.bonuses };
+    this.playerHealth.settings.max = checkpoint.maxHealth;
+    this.playerHealth.value = checkpoint.health;
+    this.playerHealth.displayValue = checkpoint.health;
+    this.playerHealth.invulnerableFor = 0;
+    this.chests.rerolls = checkpoint.rerolls;
+    this.chests.blessed = checkpoint.blessed;
+    this.chests.hellUsed = checkpoint.hellUsed;
   }
 
   get state() {
@@ -117,20 +161,23 @@ export class Game {
         const hit = this.cardOverlay.hit(point, this.chests);
         if (hit?.kind === 'reroll') this.chests.reroll(this);
         else if (hit?.kind === 'choose') {
-          this.chests.select(hit.index);
+          if (this.chests.select(hit.index)) this.sounds.play('uiConfirm');
           this.chests.startHold(`pointer:${event.pointerId}`);
           this.canvas.setPointerCapture(event.pointerId);
         }
         return;
       }
       const action = this.controls.hit(point, this.state);
+      if (['restart', 'pause'].includes(action)) this.sounds.play('uiConfirm');
       if (action === 'restart') this.restart();
       else if (action === 'sound') this.toggleSound();
       else if (action === 'pause') {
         if (this.state === 'playing') this.pause();
         else this.resume();
       } else if (this.state !== 'playing' && this.overlay.hitPrimary(point)) {
+        this.sounds.play('uiConfirm');
         if (this.state === 'paused') this.resume();
+        else if (this.state === 'stage') this.advanceStage();
         else this.restart();
       } else if (['left', 'right', 'jump'].includes(action)) {
         this.canvas.setPointerCapture(event.pointerId);
@@ -147,10 +194,13 @@ export class Game {
     window.addEventListener('keydown', (event) => {
       if (event.code === 'KeyM' && !event.repeat) this.toggleSound();
       if (this.chests.active) {
-        if (this.chests.phase === 'choice' && event.code === 'ArrowLeft')
+        if (this.chests.phase === 'choice' && event.code === 'ArrowLeft') {
           this.chests.moveSelection(-1);
-        else if (this.chests.phase === 'choice' && event.code === 'ArrowRight')
+          this.sounds.play('uiConfirm');
+        } else if (this.chests.phase === 'choice' && event.code === 'ArrowRight') {
           this.chests.moveSelection(1);
+          this.sounds.play('uiConfirm');
+        }
         else if (!event.repeat && ['KeyW', 'ArrowUp', 'Space'].includes(event.code))
           this.chests.startHold(`key:${event.code}`);
         else if (this.chests.phase === 'choice' && /^Digit[1-3]$/.test(event.code))
@@ -163,11 +213,14 @@ export class Game {
       if ((event.code === 'Escape' || event.code === this.settings.controls.pauseKey)
         && !event.repeat) {
         event.preventDefault();
+        this.sounds.play('uiConfirm');
         if (this.state === 'playing') this.pause();
         else if (this.state === 'paused') this.resume();
       } else if (event.code === 'Enter' && !event.repeat && this.state !== 'playing') {
         event.preventDefault();
+        this.sounds.play('uiConfirm');
         if (this.state === 'paused') this.resume();
+        else if (this.state === 'stage') this.advanceStage();
         else this.restart();
       }
     });
@@ -193,28 +246,71 @@ export class Game {
   toggleSound() {
     this.music.toggle();
     this.sounds.muted = this.music.muted;
-    if (!this.music.muted) this.sounds.unlock();
+    if (!this.music.muted) {
+      this.sounds.unlock();
+      this.sounds.play('uiConfirm');
+    }
   }
 
   restart() {
-    this.runBestBefore = this.bestScore.value;
+    const newExpedition = this.state === 'won';
     this.resultTime = 0;
     this.newRecord = false;
     this.lossReason = null;
     this.lastHitKind = null;
-    this.player.reset();
     this.hud.reset();
     this.idleTime = 0;
     this.landingTime = 0;
     this.dialogue.reset(this.hasStarted);
-    this.playerHealth.reset();
-    if (this.hasStarted) this.buildLevel();
+    if (newExpedition) {
+      this.stageIndex = 0;
+      this.bestScore = this.scoreForStage();
+      this.playerHealth.reset();
+      this.player.reset();
+      this.buildLevel();
+      this.swordSkill.level = 1;
+      this.captureCheckpoint();
+    } else this.restoreCheckpoint();
+    this.runBestBefore = this.bestScore.value;
     this.hasStarted = true;
     this.winLose.reset();
     this.input.clear();
     this.phase = 'playing';
-    this.music.play();
+    this.music.play(this.level?.environment ?? ['forest', 'swamp', 'temple'][this.stageIndex]);
     this.sounds.unlock();
+    this.engine.resetTime();
+  }
+
+  advanceStage() {
+    if (this.state !== 'stage' || this.stageIndex + 1 >= this.stageCount) return;
+    const skills = Object.fromEntries(['healing', 'sword', 'companion', 'fireball', 'ice', 'bow']
+      .map((kind) => [kind, this[`${kind}Skill`].level]));
+    const bonuses = { ...this.cardBonuses };
+    const maxHealth = this.playerHealth.settings.max;
+    const health = this.playerHealth.value;
+    const rerolls = this.chests.rerolls;
+    const blessed = this.chests.blessed;
+    const hellUsed = this.chests.hellUsed;
+    this.stageIndex++;
+    this.bestScore = this.scoreForStage();
+    this.runBestBefore = this.bestScore.value;
+    this.player.reset();
+    this.buildLevel(estimateCombatPower(skills, bonuses.damage));
+    for (const [kind, level] of Object.entries(skills)) this[`${kind}Skill`].level = level;
+    this.cardBonuses = bonuses;
+    this.playerHealth.settings.max = maxHealth;
+    this.playerHealth.value = Math.min(maxHealth, health + 1);
+    this.playerHealth.displayValue = this.playerHealth.value;
+    this.chests.rerolls = rerolls;
+    this.chests.blessed = blessed;
+    this.chests.hellUsed = hellUsed;
+    this.captureCheckpoint(estimateCombatPower(skills, bonuses.damage));
+    this.hud.reset();
+    this.dialogue.reset(true);
+    this.winLose.reset();
+    this.input.clear();
+    this.phase = 'playing';
+    this.music.play(this.level?.environment ?? ['forest', 'swamp', 'temple'][this.stageIndex]);
     this.engine.resetTime();
   }
 
@@ -239,11 +335,20 @@ export class Game {
     this.music.pause();
   }
 
+  updateGoal(dt) {
+    const previousPhase = this.reachGoal.phase;
+    const finished = this.reachGoal.update(dt, this.player, this.collectCoins);
+    if (previousPhase === 'charging' && this.reachGoal.phase === 'opening')
+      this.sounds.play('portalOpen');
+    if (previousPhase === 'open' && this.reachGoal.phase === 'entering')
+      this.sounds.play('portalEnter');
+    return finished;
+  }
+
   update(dt) {
     this.hud.update(dt, this.collectCoins.count);
     if (this.reachGoal.phase === 'entering') {
-      if (this.reachGoal.update(dt, this.player, this.collectCoins,
-        this.enemies.bossDefeated)) this.finishWin();
+      if (this.updateGoal(dt)) this.finishWin();
       return;
     }
     const enemySkillUses = [];
@@ -255,15 +360,25 @@ export class Game {
     this.hazards.update(dt);
     this.enemies.update(dt, this.player, (enemy, skill) =>
       enemySkillUses.push({ enemy, skill }));
+    if (!this.bossMusicActive && this.enemies.items.some((enemy) => enemy.boss && enemy.alive
+      && Math.abs(enemy.x - this.player.x) < 800)) {
+      this.bossMusicActive = true;
+      this.music.play('boss');
+    }
     this.playerHealth.update(dt);
     if (this.playerHealth.value > 0) {
       const uncollectedBoosts = Object.entries(this.boosts.pickups)
         .filter(([, pickup]) => !pickup.collected).map(([kind]) => kind);
       this.boosts.update(dt, this.player, this.playerHealth);
       for (const kind of uncollectedBoosts) {
-        if (this.boosts.pickups[kind].collected) this.dialogue.onBoost(kind);
+        if (this.boosts.pickups[kind].collected) {
+          const boostKind = this.boosts.kindFor(kind);
+          this.dialogue.onBoost(boostKind);
+          this.sounds.play(`boost${boostKind[0].toUpperCase()}${boostKind.slice(1)}`);
+        }
       }
       const wasGrounded = this.player.grounded;
+      const fallSpeed = this.player.vy;
       if (this.playerMovement.update(dt, this.boosts.speedMultiplier * this.cardBonuses.speed))
         this.dust.emit(this.player, this.player.facing);
       for (const platform of this.platforms.items) {
@@ -272,6 +387,7 @@ export class Game {
       this.grassMotion.update(dt, this.player, this.platforms.items);
       this.landingTime = !wasGrounded && this.player.grounded
         ? 0.16 : Math.max(0, this.landingTime - dt);
+      if (!wasGrounded && this.player.grounded && fallSpeed > 180) this.sounds.play('land');
       this.idleTime = this.player.grounded && Math.abs(this.player.vx) < 6
         ? this.idleTime + dt : 0;
       if (this.playerMovement.jumped) {
@@ -288,16 +404,24 @@ export class Game {
         goal: this.reachGoal.goal,
         surface: this.player.grounded ? this.player.groundPlatform?.surface : null,
       });
-      for (const { enemy, skill } of enemySkillUses)
+      for (const { enemy, skill } of enemySkillUses) {
         this.dialogue.onEnemySkill(skill, enemy, this.player);
-      this.companionSkill.update(dt, this.player, this.enemies, this.playerShots, this);
-      const previousSwordTime = this.swordSkill.attackTime;
-      this.swordSkill.update(dt, this.player, this.enemies,
-        this.boosts.damageMultiplier * (1 + this.cardBonuses.damage));
-      if (this.swordSkill.attackTime > previousSwordTime) this.sounds.play('sword');
-      this.fireballSkill.update(dt, this.player, this.enemies, this.playerShots);
-      this.iceSkill.update(dt, this.player, this.enemies, this.playerShots);
-      this.bowSkill.update(dt, this.player, this.enemies, this.playerShots);
+        this.sounds.play(skill === 'spikes' ? 'spikesTrigger'
+          : enemy.boss ? 'bossCast' : 'enemyCast');
+      }
+      this.companionSkill.update(dt, this.player, this.enemies, this.playerShots, this,
+        (event) => this.sounds.play(`companion${event[0].toUpperCase()}${event.slice(1)}`));
+      if (this.swordSkill.update(dt, this.player, this.enemies,
+        this.boosts.damageMultiplier * (1 + this.cardBonuses.damage))) {
+        this.sounds.play('sword');
+        this.sounds.play('swordHit');
+      }
+      if (this.fireballSkill.update(dt, this.player, this.enemies, this.playerShots))
+        this.sounds.play('fireballCast');
+      if (this.iceSkill.update(dt, this.player, this.enemies, this.playerShots))
+        this.sounds.play('iceCast');
+      if (this.bowSkill.update(dt, this.player, this.enemies, this.playerShots))
+        this.sounds.play('bowShot');
       this.playerShots.update(dt, this.enemies,
         this.boosts.damageMultiplier * (1 + this.cardBonuses.damage), this.platforms.items,
         (kind) => spellHits.push(kind));
@@ -316,7 +440,10 @@ export class Game {
     }
     const healthBeforeHealing = this.playerHealth.value;
     this.healingSkill.update(dt, this.player, this.playerHealth);
-    if (this.playerHealth.value > healthBeforeHealing) this.dialogue.onHealing();
+    if (this.playerHealth.value > healthBeforeHealing) {
+      this.dialogue.onHealing();
+      this.sounds.play('healSkill');
+    }
     this.collectCoins.releaseDrops(this.enemies.items, this.enemies.coinBonus ?? 0);
     this.enemies.items.forEach((enemy, index) => {
       if (enemy.alive || this.defeatedEnemies.has(index)) return;
@@ -330,32 +457,46 @@ export class Game {
     if (this.winLose.checkLoss(this.player, this.playerHealth, this.level.bottom)) {
       this.lossReason = this.player.y > this.level.bottom
         ? 'fall' : this.lastHitKind ?? 'enemy';
-      return this.endAttempt();
+      this.endAttempt();
+      this.sounds.play('lose');
+      this.music.play('defeat');
+      return;
     }
     if (this.playerHealth.value === 0) return;
     if (this.collectCoins.update(dt, this.player)) {
       this.hud.collect(this.collectCoins.lastCollected, this.camera);
       this.dialogue.onCoinsCollected();
-      this.dialogue.onCoinProgress(this.reachGoal.progress(this.collectCoins));
+      this.dialogue.onCoinProgress(this.reachGoal.progress(this.collectCoins),
+        this.reachGoal.openFraction);
       this.bestScore.save(this.collectCoins.count);
       this.sounds.play('coin');
       for (const coin of this.collectCoins.lastCollected) this.effects.emit(
         coin.x + coin.width / 2, coin.y + coin.height / 2, 'coin', 4);
     }
-    if (this.reachGoal.isReady(this.collectCoins, this.enemies.bossDefeated))
+    if (this.reachGoal.isReady(this.collectCoins))
       this.dialogue.onPortalReady();
-    if (spellHits.length) this.dialogue.onSpellHit(spellHits[0]);
+    if (spellHits.length) {
+      this.dialogue.onSpellHit(spellHits[0]);
+      const hitSound = { fireball: 'fireballHit', ice: 'iceHit', arrow: 'arrowHit' }[spellHits[0]];
+      if (hitSound) this.sounds.play(hitSound);
+    }
     this.chests.update(dt, this.player, this);
     if (this.chests.active) return;
-    if (this.reachGoal.update(dt, this.player, this.collectCoins,
-      this.enemies.bossDefeated)) this.finishWin();
+    if (this.updateGoal(dt)) this.finishWin();
   }
 
   finishWin() {
-    if (!this.winLose.checkWin(this.player, this.reachGoal, this.collectCoins,
-      this.enemies.bossDefeated)) return;
+    if (this.stageIndex + 1 < this.stageCount) {
+      if (!this.reachGoal.reachedBy(this.player, this.collectCoins)) return;
+      this.phase = 'stage';
+      this.endAttempt();
+      this.sounds.play('stageComplete');
+      return;
+    }
+    if (!this.winLose.checkWin(this.player, this.reachGoal, this.collectCoins)) return;
     this.sounds.play('win');
     this.newRecord = this.collectCoins.count > this.runBestBefore;
     this.endAttempt();
+    this.music?.play('victory');
   }
 }

@@ -45,21 +45,19 @@ function paintVines(ctx, canvas, images, progress, speed, time, cameraX) {
 }
 
 export function drawBackground(ctx, canvas, images, settings,
-  cameraX = 0, levelWidth = canvas.width, time = 0) {
+  cameraX = 0, levelWidth = canvas.width, time = 0, theme = null) {
   const progress = Math.max(0, Math.min(1,
     cameraX / Math.max(1, levelWidth - canvas.width)));
-  paintLayer(ctx, canvas, images.jungle, progress, settings.forestSpeed);
-  const templeOpacity = Math.max(0, Math.min(1,
-    (progress - settings.transitionStart) / settings.transitionLength));
-  if (templeOpacity > 0) {
+  const active = theme ?? settings.themes?.forest
+    ?? { image: 'jungle', speed: 0.35, foregroundOpacity: 1, vines: true };
+  paintLayer(ctx, canvas, images[active.image], progress, active.speed);
+  const opacity = active.foregroundOpacity;
+  if (opacity > 0) {
     ctx.save();
-    ctx.globalAlpha = templeOpacity;
-    paintLayer(ctx, canvas, images.temple, progress, settings.templeSpeed);
+    ctx.globalAlpha = opacity;
+    paintLayer(ctx, canvas, images.foliage, progress, settings.foregroundSpeed);
+    if (active.vines)
+      paintVines(ctx, canvas, images, progress, settings.foregroundSpeed, time, cameraX);
     ctx.restore();
   }
-  ctx.save();
-  ctx.globalAlpha = settings.foregroundOpacity;
-  paintLayer(ctx, canvas, images.foliage, progress, settings.foregroundSpeed);
-  paintVines(ctx, canvas, images, progress, settings.foregroundSpeed, time, cameraX);
-  ctx.restore();
 }

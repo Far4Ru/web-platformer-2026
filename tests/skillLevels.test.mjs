@@ -15,7 +15,7 @@ const enemies = { items: [enemy], projectiles: [], spikes: [] };
 
 test('bow accuracy, sword reach and double strike follow the three card levels', () => {
   const bow = new BowSkill(settings.bowSkill);
-  for (const [level, chance] of [[1, 0.15], [2, 0.4], [3, 1]]) {
+  for (const [level, chance] of [[1, 0.65], [2, 0.85], [3, 1]]) {
     bow.level = level;
     assert.equal(bow.createShot(player, enemies).hitChance, chance);
   }
@@ -56,6 +56,26 @@ test('fire and ice gain volleys, orbit shots, rolling ice and longer freeze', ()
   const iceRing = ice.createShots(player, enemies);
   assert.equal(iceRing.length, 6);
   assert(iceRing.every((shot) => shot.orbit));
+});
+
+test('automatic attacks wait for a target before starting their cooldown', () => {
+  const empty = { items: [] };
+  const shots = { items: [], add(shot) { this.items.push(shot); } };
+  const sword = new SwordSkill(settings.swordSkill);
+  sword.level = 1;
+  sword.update(0.1, player, empty);
+  assert.equal(sword.cooldown, 0);
+  const fire = new FireballSkill(settings.fireballSkill);
+  fire.level = 3;
+  fire.update(0.1, player, empty, shots);
+  assert.equal(fire.cooldown, 0);
+  const ice = new IceSkill(settings.iceSkill);
+  ice.level = 3;
+  ice.update(0.1, player, empty, shots);
+  assert.equal(ice.cooldown, 0);
+  assert.equal(shots.items.length, 0);
+  fire.update(0.1, player, enemies, shots);
+  assert.equal(fire.cooldown, settings.fireballSkill.interval);
 });
 
 test('companion has health and gets a skill at levels two and three', () => {

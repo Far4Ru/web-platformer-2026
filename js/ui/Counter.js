@@ -28,7 +28,7 @@ export class Counter {
       ctx.strokeText(String(value), 0, 0, frameWidth - 68);
       ctx.fillText(String(value), 0, 0, frameWidth - 68);
     } else {
-      ctx.drawImage(this.images.ancientTrophy ?? this.images.iconTrophy,
+      ctx.drawImage(this.images.ancientTrophy,
         x + 3, y + (height - 34) / 2, 34, 34);
       ctx.translate(x + 60, y + height / 2 + 1);
       ctx.textAlign = 'center';

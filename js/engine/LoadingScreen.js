@@ -1,6 +1,6 @@
 const ART = {
-  landscape: new URL('../../assets/images/splash-art.png', import.meta.url).href,
-  portrait: new URL('../../assets/images/splash-art-portrait.png', import.meta.url).href,
+  landscape: 'assets/images/splash-art.jpg',
+  portrait: 'assets/images/splash-art-portrait.jpg',
 };
 
 export function containRect(width, height, imageWidth, imageHeight) {
